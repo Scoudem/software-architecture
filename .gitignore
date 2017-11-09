@@ -1,0 +1,28 @@
+# eclipse stuff
+.project
+.metadata
+.settings
+.classpath
+bin/**
+tmp/**
+tmp/**/*
+**/*.rvm
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+build.properties
+.loadpath
+*/META-INF/*
+
+# maven stuff
+target/
+bin/
+bootstrap/
+
+.DS_Store
+/.apt_generated/
+
+dependency-reduced-pom.xml
+.ipynb_checkpoints
