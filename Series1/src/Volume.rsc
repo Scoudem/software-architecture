@@ -31,6 +31,7 @@ list[str] allLines(set[loc] xs)
 	return concat([readFileLines(s) | s <- xs]);
 }
 
+// Lines that are not just whitespace
 list[str] nonEmptyLines(list[str] lines)
 {
 	return [x | x <- lines, /^\s*$/ !:= x];
@@ -46,24 +47,33 @@ int emptyLines(list[str] lines)
 int commentLines(loc prj)
 {
 	doc = createM3FromEclipseProject(prj).documentation;
-	docLines = {<x,
-				 y.begin.line,
-				 y.end.line - y.begin.line + 1> 
-				| <x, y> <- doc};
-	cLines = [n | <f, x, n> <- docLines, 
-		/^\s*\/\/.*$|^\s*\/\*.*$/ := getFileLine(f, x)];
-	return (0 | it + x | x <- cLines);
+	// Get all documentation and lengths from source files
+	docLines = {<toBeginColumn(x),
+				 x.end.line - x.begin.line + 1> 
+				| <_, x> <- doc, endsWith(x.file, ".java")};
+	// Add length if the line starts with comment
+	// Add length - 1 if not, because there is also code on the (first) line
+	return (0 
+		| it + ((/^\s*\/\/.*$|^\s*\/\*.*$/ := readFile(x)) ? n : (n - 1)) 
+		| <x, n> <- docLines);
+}
+
+// Get a location that starts at the the first column at the line
+// specified by the location argument
+loc toBeginColumn(loc x)
+{
+	int bl = x.begin.line;
+	int bc = 0;
+	int el = x.end.line;
+	int ec = x.end.column;
+	int offset = x.offset - x.begin.column;
+	int length = x.length + x.begin.column;
+	return toLocation(x.uri)(offset,length,<bl,bc>,<el,ec>);
 }
 
 int totalLines(list[str] lines)
 {	
 	return size(lines);
-}
-
-// Returns specified line from file (first line is 1)
-str getFileLine(loc file, int line)
-{
-	return top(drop(line - 1, readFileLines(file)));
 }
 
 list[&T] concat(list[list[&T]] xs)
