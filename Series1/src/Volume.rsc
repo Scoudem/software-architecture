@@ -7,7 +7,7 @@ import Util;
 import util::Resources;
 import lang::java::jdt::m3::Core;
 
-str rankVolume(loc prj)
+int rankVolume(loc prj)
 {
 	str lng = "java";
 	map[str,list[int]] kloc = ("java"  : [66,246,665,1310]);
@@ -15,7 +15,7 @@ str rankVolume(loc prj)
 	int r = (0
 			| n > x ? it + 1 : it
 			| x <- kloc[lng]);
-	return rank(r);
+	return r;
 }
 
 // All source code lines that are not blank 

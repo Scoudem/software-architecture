@@ -8,7 +8,7 @@ import Util;
 
 import lang::java::jdt::m3::Core;
 
-str rankUnitSize(loc prj)
+int rankUnitSize(loc prj)
 {
 	str lng = "java";
 	map[str,list[int]] mloc = ("java" : [30,44,74]);
@@ -22,7 +22,7 @@ str rankUnitSize(loc prj)
 	int n = codeLines(prj);
 	for(i <- rs)
 		rs[i] = round((100.0 / n) * rs[i]);
-	return rank(determineRank(rs));
+	return determineRank(rs);
 }
 
 int determineRank(map[int,num] xs)
