@@ -40,5 +40,5 @@ int determineRank(map[int,num] xs)
 list[int] methodCodeLines(loc prj)
 {
 	ms = methods(createM3FromEclipseProject(prj));	
-	return [codeLinesFromString(prj, readFile(m)) | m <- ms];
+	return [codeLinesFromString(m, readFile(m)) | m <- ms];
 }

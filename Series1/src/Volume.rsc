@@ -22,7 +22,7 @@ int rankVolume(loc prj)
 // (only contain whitespace) or comment lines
 int codeLines(loc prj)
 {
-	lines   = allLines(javaFiles(prj));
+	lines   = allLines(srcFiles(prj));
 	total   = size(lines);
 	empty   = emptyLines(lines);
 	comment = commentLines(prj);
@@ -55,46 +55,58 @@ int emptyLines(list[str] lines)
 	return (total - nonEmpty);
 }
 
-int commentLines(loc prj)
+int commentLines(loc prj) = (0
+	| it + commentLinesFromString(f, readFile(f))
+	| f <- srcFiles(prj));
+
+int commentLinesFromString(loc file, str contents)
 {
-	doc = createM3FromEclipseProject(prj).documentation;
-	// Get all documentation and lengths from source files
-	docLines = {<toBeginColumn(x),
-				 x.end.line - x.begin.line + 1> 
-				| <_, x> <- doc, endsWith(x.file, ".java")};
-	// Add length if the line starts with comment
-	// Add length - 1 if not, because there is also code on the (first) line
-	return (0 
-		| it + ((/^\s*\/\/.*$|^\s*\/\*.*$/ := readFile(x)) ? n : (n - 1)) 
-		| <x, n> <- docLines);
+	rel[loc,loc] m3Doc = createM3FromString(file, contents).documentation;
+	list[loc] doc = sort([x | <_, x> <- m3Doc], offsetMoreThan);
+	int result = (0
+		| it + 1 + x.end.line - x.begin.line
+		| x <- doc);
+	list[str] lines = readFileLines(file);
+	lines = removeFirstLastLineComments(doc, lines);
+	result -= nLinesWithMoreThanJustComments(doc, lines);
+	return result;
 }
 
-int commentLinesFromString(loc prj, str contents)
+int nLinesWithMoreThanJustComments(list[loc] doc, list[str] lines)
 {
-	doc = createM3FromString(prj, contents).documentation;
-	// Get all documentation and lengths from string
-	docLines = {<x.offset,
-				 x.length,
-				 x.end.line - x.begin.line + 1> 
-				| <_, x> <- doc};
-	// Add length if the line starts with comment
-	// Add length - 1 if not, because there is also code on the (first) line
-	return (0 
-		| it + ((/^\s*\/\/.*$|^\s*\/\*.*$/ 
-				:= substring(contents, offset, offset + length))
-			 ? n : (n - 1)) 
-		| <offset, length, n> <- docLines);
+	result = 0;
+	for(i <- [0..size(doc)])
+	{
+		x = doc[i];
+		b = x.begin.line - 1;
+		e = x.end.line - 1;
+		s = lines[b];
+		if(/\S/ := lines[b]) 
+			result += 1;
+		if(e != b && /\S/ := lines[e]) 
+			result += 1;
+	}
+	return result;
 }
 
-// Get a location that starts at the the first column at the line
-// specified by the location argument
-loc toBeginColumn(loc x)
+list[str] removeFirstLastLineComments(list[loc] doc, list[str] lines)
 {
-	int bl = x.begin.line;
-	int bc = 0;
-	int el = x.end.line;
-	int ec = x.end.column;
-	int offset = x.offset - x.begin.column;
-	int length = x.length + x.begin.column;
-	return toLocation(x.uri)(offset,length,<bl,bc>,<el,ec>);
+	for(i <- [0..size(doc)])
+	{
+		x = doc[i];
+		b = x.begin.line - 1;
+		e = x.end.line - 1;
+		bc = x.begin.column;
+		ec = x.end.column;
+		if(b == e) 
+			lines[b] = lines[b][0..bc] + lines[b][ec..];
+		else
+		{
+			lines[e] = lines[e][ec..];
+			lines[b] = lines[b][0..bc];
+		}
+	}
+	return lines;
 }
+
+bool offsetMoreThan(loc a, loc b) = a.offset > b.offset;

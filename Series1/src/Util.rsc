@@ -4,8 +4,7 @@ import IO;
 import String;
 import util::Resources;
 
-// All source code files for a java project
-set[loc] javaFiles(loc prj) =
+set[loc] srcFiles(loc prj) =
 	{f | /file(f) <- getProject(prj), endsWith(f.file, ".java")};
 
 // A list of all lines in the files in the set
