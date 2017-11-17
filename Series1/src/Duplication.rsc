@@ -19,13 +19,43 @@ int rankDuplication(loc prj)
 	return r;
 }
 
+int simpleHash(str s) = (<1,0> | <it[0] + 1, it[1] + toInt(pow(c, it[0]))> | c <- chars(s))[1];
+
 list[tuple[int,int,int]] duplicates(loc prj)
 {
-	result = [];
 	cls = codeLines(prj);
-	for(i <- [0..size(cls)])
+	return verifyDuplicates(cls, maybeDuplicates(cls));
+}
+
+list[tuple[int,int,int]] maybeDuplicates(list[str] cls)
+{
+	result = [];
+	hls = mapper(cls, simpleHash);
+	for(i <- [0..size(hls)])
 	{
-		for(j <- [i+1..size(cls)])
+		for(j <- [i+1..size(hls)])
+		{
+			int d = 0;
+			while(j+d < size(hls) && hls[i+d] == hls[j+d])
+			{
+				a = hls[i+d];
+				b = hls[j+d];
+				d += 1;
+			}
+			if(j == i + 1) d += 1;
+			if(d >= 6) result += <i,j,d>;
+		}
+		//println(100.0 / size(cls) * i);
+	}
+	return result;
+}
+
+list[tuple[int,int,int]] verifyDuplicates(list[str] cls, list[tuple[int,int,int]] mds)
+{
+	result = [];
+	for(<i, y, _> <- mds)
+	{
+		for(j <- [y..size(cls)])
 		{
 			int d = 0;
 			while(j+d < size(cls) && cls[i+d] == cls[j+d])

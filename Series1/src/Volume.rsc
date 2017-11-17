@@ -11,7 +11,7 @@ int rankVolume(loc prj)
 {
 	str lng = "java";
 	map[str,list[int]] kloc = ("java"  : [66,246,665,1310]);
-	int n = codeLines(prj) / 1000;
+	int n = nCodeLines(prj) / 1000;
 	int r = (0
 			| n > x ? it + 1 : it
 			| x <- kloc[lng]);
@@ -20,24 +20,24 @@ int rankVolume(loc prj)
 
 // All source code lines that are not blank 
 // (only contain whitespace) or comment lines
-int codeLines(loc prj)
+int nCodeLines(loc prj)
 {
 	lines   = allLines(srcFiles(prj));
 	total   = size(lines);
-	empty   = emptyLines(lines);
-	comment = commentLines(prj);
+	empty   = nEmptyLines(lines);
+	comment = nCommentLines(prj);
 	code    = total - empty - comment;
 	return code;
 }
 
 // All source code lines from string that are not blank 
 // (only contain whitespace) or comment lines
-int codeLinesFromString(loc prj, str contents)
+int nCodeLinesFromString(loc prj, str contents)
 {
 	lines   = split("\n", contents);
 	total   = size(lines);
-	empty   = emptyLines(lines);
-	comment = commentLinesFromString(prj, contents);
+	empty   = nEmptyLines(lines);
+	comment = nCommentLinesFromString(prj, contents);
 	code    = total - empty - comment;
 	return code;
 }
@@ -48,18 +48,18 @@ list[str] nonEmptyLines(list[str] lines)
 	return [x | x <- lines, /^\s*$/ !:= x];
 }
 
-int emptyLines(list[str] lines)
+int nEmptyLines(list[str] lines)
 {	
 	int total    = size(lines);
 	int nonEmpty = size(nonEmptyLines(lines));
 	return (total - nonEmpty);
 }
 
-int commentLines(loc prj) = (0
-	| it + commentLinesFromString(f, readFile(f))
+int nCommentLines(loc prj) = (0
+	| it + nCommentLinesFromString(f, readFile(f))
 	| f <- srcFiles(prj));
 
-int commentLinesFromString(loc file, str contents)
+int nCommentLinesFromString(loc file, str contents)
 {
 	rel[loc,loc] m3Doc = createM3FromString(file, contents).documentation;
 	list[loc] doc = sort([x | <_, x> <- m3Doc], offsetMoreThan);

@@ -19,7 +19,7 @@ int rankUnitSize(loc prj)
 	// To percentages
 	// Note that codeLines count all code lines and not just methods,
 	// thus the percentages do not add up to 100
-	int n = codeLines(prj);
+	int n = nCodeLines(prj);
 	for(i <- rs)
 		rs[i] = round((100.0 / n) * rs[i]);
 	return determineRank(rs);
@@ -40,5 +40,5 @@ int determineRank(map[int,num] xs)
 list[int] methodCodeLines(loc prj)
 {
 	ms = methods(createM3FromEclipseProject(prj));	
-	return [codeLinesFromString(m, readFile(m)) | m <- ms];
+	return [nCodeLinesFromString(m, readFile(m)) | m <- ms];
 }

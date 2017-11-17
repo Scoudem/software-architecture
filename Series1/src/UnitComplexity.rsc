@@ -14,9 +14,9 @@ int rankUnitComplexity(loc prj)
 	map[int, int] rs = (0:0, 1:0, 2:0, 3:0);
 	for(x <- methodComplexities(prj))
 		rs[(0 | x.c > m ? it + 1 : it | m <- crs)] += 
-			codeLinesFromString(x.l, readFile(x.l));
+			nCodeLinesFromString(x.l, readFile(x.l));
 	// To percentages
-	int n = codeLines(prj);
+	int n = nCodeLines(prj);
 	for(i <- rs)
 		rs[i] = toInt(round((100.0 / n) * rs[i]));
 	return determineRank(rs);
