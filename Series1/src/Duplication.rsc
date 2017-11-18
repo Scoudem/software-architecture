@@ -24,49 +24,50 @@ int simpleHash(str s) = (<1,0> | <it[0] + 1, it[1] + toInt(pow(c, it[0]))> | c <
 list[tuple[int,int,int]] duplicates(loc prj)
 {
 	cls = codeLines(prj);
-	return verifyDuplicates(cls, maybeDuplicates(cls));
+	return countDuplicates(allDup(cls));
 }
 
-list[tuple[int,int,int]] maybeDuplicates(list[str] cls)
+list[&T] allDup(list[&T] lst)
 {
-	result = [];
-	hls = mapper(cls, simpleHash);
-	for(i <- [0..size(hls)])
+	ds = onlyDup(lst);
+	return for (e <- lst, e in ds) append e;
+}
+
+list[&T] onlyDup(list[&T] lst)
+{
+	seen = {};
+	returned = {};
+	return for (e <- lst)
 	{
-		if(i+6 < size(hls))
+		if(e notin seen)
+			seen = seen + {e};	
+		else
 		{
-			for(j <- [i+6..size(hls)])
-			{
-				int d = 0;
-				while(d < j - i && j+d < size(hls) && hls[i+d] == hls[j+d])
-				{
-					a = hls[i+d];
-					b = hls[j+d];
-					d += 1;
-				};
-				if(d >= 6 && d < j - i) result += <i,j,d>;
-			}
-			println(100.0 / size(cls) * i);
+			returned = returned + {e};
+			append e;
 		}
 	}
-	return result;
 }
 
-list[tuple[int,int,int]] verifyDuplicates(list[str] cls, list[tuple[int,int,int]] mds)
+list[tuple[int,int,int]] countDuplicates(list[str] cls)
 {
 	result = [];
-	for(<i, y, _> <- mds)
+	for(i <- [0..size(cls)])
 	{
-		for(j <- [y..size(cls)])
+		if(i+6 < size(cls))
 		{
-			int d = 0;
-			while(j+d < size(cls) && cls[i+d] == cls[j+d])
+			for(j <- [i+6..size(cls)])
 			{
-				a = cls[i+d];
-				b = cls[j+d];
-				d += 1;
+				int d = 0;
+				while(d < j - i && j+d < size(cls) && cls[i+d] == cls[j+d])
+				{
+					a = cls[i+d];
+					b = cls[j+d];
+					d += 1;
+				}
+				if(d >= 6 && d < j - i) result += <i,j,d>;
 			}
-			if(d >= 6) result += <i,j,d>;
+			//println(100.0 / size(cls) * i);
 		}
 	}
 	return result;
