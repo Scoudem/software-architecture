@@ -33,19 +33,21 @@ list[tuple[int,int,int]] maybeDuplicates(list[str] cls)
 	hls = mapper(cls, simpleHash);
 	for(i <- [0..size(hls)])
 	{
-		for(j <- [i+1..size(hls)])
+		if(i+6 < size(hls))
 		{
-			int d = 0;
-			while(j+d < size(hls) && hls[i+d] == hls[j+d])
+			for(j <- [i+6..size(hls)])
 			{
-				a = hls[i+d];
-				b = hls[j+d];
-				d += 1;
+				int d = 0;
+				while(d < j - i && j+d < size(hls) && hls[i+d] == hls[j+d])
+				{
+					a = hls[i+d];
+					b = hls[j+d];
+					d += 1;
+				};
+				if(d >= 6 && d < j - i) result += <i,j,d>;
 			}
-			if(j == i + 1) d += 1;
-			if(d >= 6) result += <i,j,d>;
+			println(100.0 / size(cls) * i);
 		}
-		//println(100.0 / size(cls) * i);
 	}
 	return result;
 }
@@ -64,7 +66,6 @@ list[tuple[int,int,int]] verifyDuplicates(list[str] cls, list[tuple[int,int,int]
 				b = cls[j+d];
 				d += 1;
 			}
-			if(j == i + 1) d += 1;
 			if(d >= 6) result += <i,j,d>;
 		}
 	}
