@@ -13,7 +13,7 @@ import util::Benchmark;
 
 void demo()
 {
-	println(benchmark(("smallsql" : void() {ppScores(|project://smallsql0.21_src|, duplication = true);})));
+	println(benchmark(("smallsql" : void() {ppScores(|project://smallsql0.21_src|);})));
 	println(benchmark(("hsqldb" : void() {ppScores(|project://hsqldb-2.3.1|);})));
 }
 
@@ -21,9 +21,11 @@ void ppScores(loc prj, bool duplication = false)
 {
 	cls = codeLines(prj);
 	nCl = size(cls);
+	rus = unitSizes(prj, nCl);
+	ruc = unitComplexities(prj, nCl);
 	rD = duplication ? rankDuplication(nCl, cls) : 2;
-	rU = rankUnitSize(prj, nCl);
-	rC = rankUnitComplexity(prj, nCl);
+	rU = rankUnitSize(rus);
+	rC = rankUnitComplexity(ruc);
 	an = average(duplication ? [rankVolume(nCl), rD, rU] : [rankVolume(nCl), rU]);
 	ch = duplication ? average([rC, rD]) : rC;
 	te = average([rC, rU]);
@@ -34,26 +36,30 @@ void ppScores(loc prj, bool duplication = false)
 	println("Testability:     " + rank(te));
 	println("Code lines:      " + toString(nCl));
 	println("Unit complexity: " + rank(rC));
+	println("Unit complexities:");
+	iprintln(ruc);
 	println("Unit size:       " + rank(rU));
+	println("Unit sizes:");
+	iprintln(rus);
 	println("Duplication:     " + (duplication ? rank(rD) : "Not ranked"));
 }
 
-int maintainability(loc prj, int nCl, list[str] cls) = average([
-	analysability(prj, nCl, cls),
-	changeability(prj, nCl, cls),
-	testability(prj, nCl)]);
+int maintainability(loc prj, int nCl, list[str] cls, map[int,int] ruc, map[int,num] rus) = average([
+	analysability(prj, nCl, cls, rus),
+	changeability(prj, nCl, cls, ruc),
+	testability(prj, nCl, ruc, rus)]);
 
-int analysability(loc prj, int nCl, list[str] cls) = average([
+int analysability(loc prj, int nCl, list[str] cls, map[int,num] rs) = average([
 	rankVolume(nCl),
 	rankDuplication(nCl, cls),
-	rankUnitSize(prj, nCl)]);
+	rankUnitSize(rs)]);
 
-int changeability(loc prj, int nCl, list[str] cls) = average([
-	rankUnitComplexity(prj, nCl),
+int changeability(loc prj, int nCl, list[str] cls, map[int,int] ruc) = average([
+	rankUnitComplexity(ruc),
 	rankDuplication(nCl, cls)]);
 
-int testability(loc prj, int nCl) = average([
-	rankUnitComplexity(prj, nCl),
-	rankUnitSize(prj, nCl)]);
+int testability(loc prj, int nCl, map[int,int] ruc, map[int,num] rus) = average([
+	rankUnitComplexity(ruc),
+	rankUnitSize(rus)]);
 
 int average(list[int] xs) = toInt(round(toReal(sum(xs)) / size(xs)));

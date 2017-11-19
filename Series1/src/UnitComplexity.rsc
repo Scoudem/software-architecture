@@ -7,29 +7,27 @@ import List;
 import Volume;
 import IO;
 
-int rankUnitComplexity(loc prj, int nCl)
-{
-	list[int] crs = [10,20,50];
-	// Aggregated unit complexities
-	map[int, int] rs = (0:0, 1:0, 2:0, 3:0);
-	for(x <- methodComplexities(prj))
-		rs[(0 | x.c > m ? it + 1 : it | m <- crs)] += 
-			nCodeLinesFromString(x.l, readFile(x.l));
-	// To percentages
-	for(i <- rs)
-		rs[i] = toInt(round((100.0 / nCl) * rs[i]));
-	return determineRank(rs);
-}
-
-int determineRank(map[int,int] xs)
+int rankUnitComplexity(map[int,int] rs)
 {
 	lrel[int,int,int] thresholds = 
 		[<1,25,1>,<2, 0,1>,<3,0,1>,
 		 <1,30,2>,<2, 5,2>,<3,0,2>,
 		 <1,40,3>,<2,10,3>,<3,0,3>,
 		 <1,50,4>,<2,15,4>,<3,5,4>];
-	return (0 | (xs[a] > b ? xs[a] > it) ? c : it 
+	return (0 | (rs[a] > b ? rs[a] > it) ? c : it 
 			| <a,b,c> <- thresholds);
+}
+
+map[int,int] unitComplexities(loc prj, int nCl)
+{
+	list[int] crs = [10,20,50];
+	map[int, int] rs = (0:0, 1:0, 2:0, 3:0);
+	for(x <- methodComplexities(prj))
+		rs[(0 | x.c > m ? it + 1 : it | m <- crs)] += 
+			nCodeLinesFromString(x.l, readFile(x.l));
+	for(i <- rs)
+		rs[i] = toInt(round((100.0 / nCl) * rs[i]));
+	return rs;
 }
 
 list[tuple[int c,loc l]] methodComplexities(loc prj)
