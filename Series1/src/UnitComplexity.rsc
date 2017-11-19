@@ -7,7 +7,7 @@ import List;
 import Volume;
 import IO;
 
-int rankUnitComplexity(loc prj)
+int rankUnitComplexity(loc prj, int nCl)
 {
 	list[int] crs = [10,20,50];
 	// Aggregated unit complexities
@@ -16,9 +16,8 @@ int rankUnitComplexity(loc prj)
 		rs[(0 | x.c > m ? it + 1 : it | m <- crs)] += 
 			nCodeLinesFromString(x.l, readFile(x.l));
 	// To percentages
-	int n = nCodeLines(prj);
 	for(i <- rs)
-		rs[i] = toInt(round((100.0 / n) * rs[i]));
+		rs[i] = toInt(round((100.0 / nCl) * rs[i]));
 	return determineRank(rs);
 }
 

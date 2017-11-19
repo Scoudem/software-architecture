@@ -8,35 +8,52 @@ import UnitSize;
 import UnitComplexity;
 import Duplication;
 import Util;
+import CodeLines;
+import util::Benchmark;
 
-void ppScores(loc prj)
+void demo()
 {
-	println("Maintainability: " + rank(maintainability(prj)));
-	println("Analysability:   " + rank(analysability(prj)));
-	println("Changeability:   " + rank(changeability(prj)));
-	println("Testability:     " + rank(testability(prj)));
-	println("Code lines:      " + toString(nCodeLines(prj)));
-	println("Unit complexity: " + rank(rankUnitComplexity(prj)));
-	println("Unit size:       " + rank(rankUnitSize(prj)));
-	println("Duplication:     " + "Implementation is too slow"); //rank(rankDuplication(prj)));
+	println(benchmark(("smallsql" : void() {ppScores(|project://smallsql0.21_src|, duplication = true);})));
+	println(benchmark(("hsqldb" : void() {ppScores(|project://hsqldb-2.3.1|);})));
 }
 
-int maintainability(loc prj) = average([
-	analysability(prj),
-	changeability(prj),
-	testability(prj)]);
+void ppScores(loc prj, bool duplication = false)
+{
+	cls = codeLines(prj);
+	nCl = size(cls);
+	rD = duplication ? rankDuplication(nCl, cls) : 2;
+	rU = rankUnitSize(prj, nCl);
+	rC = rankUnitComplexity(prj, nCl);
+	an = average(duplication ? [rankVolume(nCl), rD, rU] : [rankVolume(nCl), rU]);
+	ch = duplication ? average([rC, rD]) : rC;
+	te = average([rC, rU]);
+	ma = average([an, ch, te]);
+	println("Maintainability: " + rank(ma));
+	println("Analysability:   " + rank(an));
+	println("Changeability:   " + rank(ch));
+	println("Testability:     " + rank(te));
+	println("Code lines:      " + toString(nCl));
+	println("Unit complexity: " + rank(rC));
+	println("Unit size:       " + rank(rU));
+	println("Duplication:     " + (duplication ? rank(rD) : "Not ranked"));
+}
 
-int analysability(loc prj) = average([
-	rankVolume(prj),
-	//rankDuplication(prj),
-	rankUnitSize(prj)]);
+int maintainability(loc prj, int nCl, list[str] cls) = average([
+	analysability(prj, nCl, cls),
+	changeability(prj, nCl, cls),
+	testability(prj, nCl)]);
 
-int changeability(loc prj) = average([
-	rankUnitComplexity(prj)]);
-	//rankDuplication(prj)]);
+int analysability(loc prj, int nCl, list[str] cls) = average([
+	rankVolume(nCl),
+	rankDuplication(nCl, cls),
+	rankUnitSize(prj, nCl)]);
 
-int testability(loc prj) = average([
-	rankUnitComplexity(prj),
-	rankUnitSize(prj)]);
+int changeability(loc prj, int nCl, list[str] cls) = average([
+	rankUnitComplexity(prj, nCl),
+	rankDuplication(nCl, cls)]);
+
+int testability(loc prj, int nCl) = average([
+	rankUnitComplexity(prj, nCl),
+	rankUnitSize(prj, nCl)]);
 
 int average(list[int] xs) = toInt(round(toReal(sum(xs)) / size(xs)));

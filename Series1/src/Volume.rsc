@@ -7,31 +7,17 @@ import Util;
 import util::Resources;
 import lang::java::jdt::m3::Core;
 
-int rankVolume(loc prj)
+int rankVolume(int nCl)
 {
 	str lng = "java";
 	map[str,list[int]] kloc = ("java"  : [66,246,665,1310]);
-	int n = nCodeLines(prj) / 1000;
+	int n = nCl / 1000;
 	int r = (0
 			| n > x ? it + 1 : it
 			| x <- kloc[lng]);
 	return r;
 }
 
-// All source code lines that are not blank 
-// (only contain whitespace) or comment lines
-int nCodeLines(loc prj)
-{
-	lines   = allLines(srcFiles(prj));
-	total   = size(lines);
-	empty   = nEmptyLines(lines);
-	comment = nCommentLines(prj);
-	code    = total - empty - comment;
-	return code;
-}
-
-// All source code lines from string that are not blank 
-// (only contain whitespace) or comment lines
 int nCodeLinesFromString(loc prj, str contents)
 {
 	lines   = split("\n", contents);
@@ -42,7 +28,6 @@ int nCodeLinesFromString(loc prj, str contents)
 	return code;
 }
 
-// Lines that are not just whitespace
 list[str] nonEmptyLines(list[str] lines)
 {
 	return [x | x <- lines, /^\s*$/ !:= x];

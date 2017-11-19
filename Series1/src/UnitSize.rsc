@@ -8,7 +8,7 @@ import Util;
 
 import lang::java::jdt::m3::Core;
 
-int rankUnitSize(loc prj)
+int rankUnitSize(loc prj, int nCl)
 {
 	str lng = "java";
 	map[str,list[int]] mloc = ("java" : [30,44,74]);
@@ -19,9 +19,8 @@ int rankUnitSize(loc prj)
 	// To percentages
 	// Note that codeLines count all code lines and not just methods,
 	// thus the percentages do not add up to 100
-	int n = nCodeLines(prj);
 	for(i <- rs)
-		rs[i] = round((100.0 / n) * rs[i]);
+		rs[i] = round((100.0 / nCl) * rs[i]);
 	return determineRank(rs);
 }
 
