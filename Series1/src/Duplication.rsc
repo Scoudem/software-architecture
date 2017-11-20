@@ -2,42 +2,48 @@ module Duplication
 
 import IO;
 import List;
+import Set;
 import String;
 import util::Math;
 
-int rankDuplication(int nCl, list[str] cls)
+int rankDuplication(int nCl, int nDl)
 {
-	nDs = (0 | it + d | <_,_,d> <- duplicates(cls));
 	list[int] thresholds = [3,5,10,20];
-	int p = toInt(round(100.0 / nCl * nDs));
+	int p = toInt(round(100.0 / nCl * nDl));
 	int r = (0
 			| p > x ? it + 1 : it
 			| x <- thresholds);
 	return r;
 }
 
-int simpleHash(str s) = (<1,0> | <it[0] + 1, it[1] + toInt(pow(c, it[0]))> | c <- chars(s))[1];
-
-list[tuple[int,int,int]] duplicates(list[str] cls)
+list[tuple[int,str]] groupPerSixLines(list[str] cls)
 {
-	result = [];
-	for(i <- [0..size(cls)])
+	return for(i <- [0..size(cls)])
+		append(<i, ("" | it + cls[j] + "\n" | j <- [i..min(i+6,size(cls))])>); 
+}
+
+int countDuplicates(list[str] cls)
+{
+	clsp6 = groupPerSixLines(cls);
+	seenCode = {};
+	seenCodeLines = ();
+	set[int] duplicateLines = {};
+	for(<i, c> <- clsp6)
 	{
-		if(i+6 < size(cls))
+		if(c in seenCode)
 		{
-			for(j <- [i+6..size(cls)])
+			duplicateLines += i;
+			if(c in seenCodeLines)
 			{
-				int d = 0;
-				while(d < j - i && j+d < size(cls) && cls[i+d] == cls[j+d])
-				{
-					a = cls[i+d];
-					b = cls[j+d];
-					d += 1;
-				}
-				if(d >= 6 && d < j - i) result += <i,j,d>;
+				duplicateLines += seenCodeLines[c];
+				seenCodeLines -= (c:0);
 			}
-			//println(100.0 / size(cls) * i);
+		}
+		else
+		{
+			seenCode += c;
+			seenCodeLines += (c:i);
 		}
 	}
-	return result;
+	return (<0, 0> | <i, it[1] + ((i >= it[0] + 6) ? 6 : (i - it[0]))> | i <- sort(duplicateLines))[1];
 }

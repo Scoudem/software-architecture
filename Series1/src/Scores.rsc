@@ -17,13 +17,14 @@ void demo()
 	println(benchmark(("hsqldb" : void() {ppScores(|project://hsqldb-2.3.1|);})));
 }
 
-void ppScores(loc prj, bool duplication = false)
+void ppScores(loc prj, bool duplication = true)
 {
 	cls = codeLines(prj);
 	nCl = size(cls);
 	rus = unitSizes(prj, nCl);
 	ruc = unitComplexities(prj, nCl);
-	rD = duplication ? rankDuplication(nCl, cls) : 2;
+	nDl = duplication ? countDuplicates(cls) : 0;
+	rD = duplication ? rankDuplication(nCl, nDl) : 2;
 	rU = rankUnitSize(rus);
 	rC = rankUnitComplexity(ruc);
 	an = average(duplication ? [rankVolume(nCl), rD, rU] : [rankVolume(nCl), rU]);
@@ -42,6 +43,8 @@ void ppScores(loc prj, bool duplication = false)
 	println("Unit sizes:");
 	iprintln(rus);
 	println("Duplication:     " + (duplication ? rank(rD) : "Not ranked"));
+	println("Duplicate lines: " + (duplication ? toString(nDl) : "Not ranked"));
+	println("Duplication %:   " + (duplication ? toString(round(100.0 / nCl * nDl)) : "Not ranked"));
 }
 
 int maintainability(loc prj, int nCl, list[str] cls, map[int,int] ruc, map[int,num] rus) = average([
