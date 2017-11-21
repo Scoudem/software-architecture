@@ -13,56 +13,62 @@ import util::Benchmark;
 
 void demo()
 {
-	println(benchmark(("smallsql" : void() {ppScores(|project://smallsql0.21_src|);})));
-	println(benchmark(("hsqldb" : void() {ppScores(|project://hsqldb-2.3.1|);})));
+	println("Time:            " + toString(round(benchmark(("f" : void() 
+		{ppScores(|project://smallsql0.21_src|);}))["f"] / 1000)) + "s");
+	println("Time:            " + toString(round(benchmark(("f" : void() 
+		{ppScores(|project://hsqldb-2.3.1|);    }))["f"] / 1000)) + "s");
 }
 
-void ppScores(loc prj, bool duplication = true)
+alias Metrics = tuple[list[str] codeLines, int numCodeLines, map[int,num] relUnitSizes,
+	map[int,int] relUnitComplexities, int numDuplicates, int rankUnitSize,
+	int rankUnitComplexity, int rankDuplication, int rankMaintainability,
+	int rankAnalysability, int rankChangeability, int rankTestability];
+
+Metrics emptyMetrics = <[], 0, (), (), 0, 0, 0, 0, 0, 0, 0, 0>;
+
+Metrics metrics(loc prj)
 {
-	cls = codeLines(prj);
-	nCl = size(cls);
-	rus = unitSizes(prj, nCl);
-	ruc = unitComplexities(prj, nCl);
-	nDl = duplication ? countDuplicates(cls) : 0;
-	rD = duplication ? rankDuplication(nCl, nDl) : 2;
-	rU = rankUnitSize(rus);
-	rC = rankUnitComplexity(ruc);
-	an = average(duplication ? [rankVolume(nCl), rD, rU] : [rankVolume(nCl), rU]);
-	ch = duplication ? average([rC, rD]) : rC;
-	te = average([rC, rU]);
-	ma = average([an, ch, te]);
-	println("Maintainability: " + rank(ma));
-	println("Analysability:   " + rank(an));
-	println("Changeability:   " + rank(ch));
-	println("Testability:     " + rank(te));
-	println("Code lines:      " + toString(nCl));
-	println("Unit complexity: " + rank(rC));
-	println("Unit complexities:");
-	iprintln(ruc);
-	println("Unit size:       " + rank(rU));
-	println("Unit sizes:");
-	iprintln(rus);
-	println("Duplication:     " + (duplication ? rank(rD) : "Not ranked"));
-	println("Duplicate lines: " + (duplication ? toString(nDl) : "Not ranked"));
-	println("Duplication %:   " + (duplication ? toString(round(100.0 / nCl * nDl)) : "Not ranked"));
+	Metrics result = emptyMetrics;
+	result.codeLines = getCodeLines(prj);
+	result.numCodeLines = size(result.codeLines);
+	result.relUnitSizes = unitSizes(prj, result.numCodeLines);
+	result.relUnitComplexities = unitComplexities(prj, result.numCodeLines);
+	result.numDuplicates = countDuplicates(result.codeLines);
+	result.rankDuplication = rankDuplication(result.numCodeLines, result.numDuplicates);
+	result.rankUnitSize = rankUnitSize(result.relUnitSizes);
+	result.rankUnitComplexity = rankUnitComplexity(result.relUnitComplexities);
+	result.rankAnalysability = average([rankVolume(result.numCodeLines), result.rankDuplication, result.rankUnitSize]);
+	result.rankChangeability = average([result.rankUnitComplexity, result.rankDuplication]);
+	result.rankTestability = average([result.rankUnitComplexity, result.rankUnitSize]);
+	result.rankMaintainability = average([result.rankAnalysability, result.rankChangeability, result.rankTestability]);
+	return result;
 }
 
-int maintainability(int nCl, int nDl, map[int,int] ruc, map[int,num] rus) = average([
-	analysability(nCl, nDl, rus),
-	changeability(nCl, nDl, ruc),
-	testability(ruc, rus)]);
+void ppScores(loc prj)
+{
+	Metrics m = metrics(prj);
+	println("Maintainability: " + rank(m.rankMaintainability));
+	println("Analysability:   " + rank(m.rankAnalysability));
+	println("Changeability:   " + rank(m.rankChangeability));
+	println("Testability:     " + rank(m.rankTestability));
+	println("Code lines:      " + toString(m.numCodeLines));
+	println("Unit complexity: " + rank(m.rankUnitComplexity));
+	println("Unit complexities:");
+	ppRelMap(m.relUnitComplexities);
+	println("Unit size:       " + rank(m.rankUnitSize));
+	println("Unit sizes:");
+	ppRelMap(m.relUnitSizes);
+	println("Duplication:     " + rank(m.rankDuplication));
+	println("Duplicate lines: " + toString(m.numDuplicates));
+	println("Duplication %:   " + toString(round(100.0 / m.numCodeLines * m.numDuplicates)) + "%");
+}
 
-int analysability(int nCl, int nDl, map[int,num] rus) = average([
-	rankVolume(nCl),
-	rankDuplication(nCl, nDl),
-	rankUnitSize(rus)]);
-
-int changeability(int nCl, int nDl, map[int,int] ruc) = average([
-	rankUnitComplexity(ruc),
-	rankDuplication(nCl, nDl)]);
-
-int testability(map[int,int] ruc, map[int,num] rus) = average([
-	rankUnitComplexity(ruc),
-	rankUnitSize(rus)]);
+void ppRelMap(map[int, num] relNums)
+{
+	println("\tLow risk:       " + toString(relNums[0]) + "%");
+	println("\tModerate risk:  " + toString(relNums[1]) + "%");
+	println("\tHigh risk:      " + toString(relNums[2]) + "%");
+	println("\tVery high risk: " + toString(relNums[3]) + "%");
+}
 
 int average(list[int] xs) = toInt(round(toReal(sum(xs)) / size(xs)));

@@ -5,15 +5,13 @@ import List;
 import Set;
 import String;
 import util::Math;
+import Util;
 
-int rankDuplication(int nCl, int nDl)
+int rankDuplication(int numCodeLines, int numDuplicates)
 {
 	list[int] thresholds = [3,5,10,20];
-	int p = toInt(round(100.0 / nCl * nDl));
-	int r = (0
-			| p > x ? it + 1 : it
-			| x <- thresholds);
-	return r;
+	int p = toInt(round(100.0 / numCodeLines * numDuplicates));
+	return rankThresholds(p, thresholds);
 }
 
 list[tuple[int,str]] groupPerSixLines(list[str] cls)

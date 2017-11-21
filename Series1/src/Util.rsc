@@ -12,4 +12,10 @@ list[str] allLines(set[loc] xs) = concat([readFileLines(s) | s <- xs]);
 
 str rank(int i) = ["++", "+", "o", "-", "--"][i];
 
+int rankThresholds(int val, list[int] thresholds) =
+	(0 | val > t ? it + 1 : it | t <- thresholds);
+
+int rankThresholds(map[int,num] relVals, list[tuple[int,num,int]] thresholds) = 
+	(0 | (relVals[a] > b ? relVals[a] > it) ? c : it | <a,b,c> <- thresholds);
+
 list[&T] concat(list[list[&T]] xs) = ([] | it + x | x <- xs);

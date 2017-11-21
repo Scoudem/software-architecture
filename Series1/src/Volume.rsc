@@ -7,15 +7,12 @@ import Util;
 import util::Resources;
 import lang::java::jdt::m3::Core;
 
-int rankVolume(int nCl)
+int rankVolume(int numCodeLines)
 {
 	str lng = "java";
 	map[str,list[int]] kloc = ("java"  : [66,246,665,1310]);
-	int n = nCl / 1000;
-	int r = (0
-			| n > x ? it + 1 : it
-			| x <- kloc[lng]);
-	return r;
+	int n = numCodeLines / 1000;
+	return rankThresholds(n, kloc["java"]);
 }
 
 int nCodeLinesFromString(loc prj, str contents)
