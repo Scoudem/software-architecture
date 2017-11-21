@@ -3,9 +3,17 @@ module Util
 import IO;
 import String;
 import util::Resources;
+import lang::xml::DOM;
 
-set[loc] srcFiles(loc prj) =
-	{f | /file(f) <- getProject(prj), endsWith(f.file, ".java")};
+set[loc] srcFolders(loc prj) = {prj + path |
+	/element(_,"classpathentry",[attribute(_,"path",path),attribute(_,"kind","src")])
+		<- parseXMLDOMTrim(readFile(find(".classpath", [prj])))};
+
+set[loc] srcFiles(loc prj)
+{
+	set[loc] srcDirs = srcFolders(prj);
+	return {f | /file(f) <- [contents | /folder(dir, contents) <- getProject(prj), dir in srcDirs], endsWith(f.file, ".java")};
+}
 
 // A list of all lines in the files in the set
 list[str] allLines(set[loc] xs) = concat([readFileLines(s) | s <- xs]);
