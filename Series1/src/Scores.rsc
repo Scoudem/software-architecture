@@ -47,21 +47,21 @@ void ppScores(loc prj, bool duplication = true)
 	println("Duplication %:   " + (duplication ? toString(round(100.0 / nCl * nDl)) : "Not ranked"));
 }
 
-int maintainability(loc prj, int nCl, list[str] cls, map[int,int] ruc, map[int,num] rus) = average([
-	analysability(prj, nCl, cls, rus),
-	changeability(prj, nCl, cls, ruc),
-	testability(prj, nCl, ruc, rus)]);
+int maintainability(int nCl, int nDl, map[int,int] ruc, map[int,num] rus) = average([
+	analysability(nCl, nDl, rus),
+	changeability(nCl, nDl, ruc),
+	testability(ruc, rus)]);
 
-int analysability(loc prj, int nCl, list[str] cls, map[int,num] rs) = average([
+int analysability(int nCl, int nDl, map[int,num] rus) = average([
 	rankVolume(nCl),
-	rankDuplication(nCl, cls),
-	rankUnitSize(rs)]);
+	rankDuplication(nCl, nDl),
+	rankUnitSize(rus)]);
 
-int changeability(loc prj, int nCl, list[str] cls, map[int,int] ruc) = average([
+int changeability(int nCl, int nDl, map[int,int] ruc) = average([
 	rankUnitComplexity(ruc),
-	rankDuplication(nCl, cls)]);
+	rankDuplication(nCl, nDl)]);
 
-int testability(loc prj, int nCl, map[int,int] ruc, map[int,num] rus) = average([
+int testability(map[int,int] ruc, map[int,num] rus) = average([
 	rankUnitComplexity(ruc),
 	rankUnitSize(rus)]);
 
