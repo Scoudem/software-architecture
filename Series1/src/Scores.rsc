@@ -1,6 +1,7 @@
 module Scores
 
 import List;
+import Set;
 import IO;
 import util::Math;
 import Volume;
@@ -24,14 +25,17 @@ void demo()
 alias Metrics = tuple[lrel[list[str], loc] codeLines, int numCodeLines, map[int,num] relUnitSizes,
 	map[int,int] relUnitComplexities, int numDuplicates, int rankUnitSize,
 	int rankUnitComplexity, int rankDuplication, int rankMaintainability,
-	int rankAnalysability, int rankChangeability, int rankTestability];
+	int rankAnalysability, int rankChangeability, int rankTestability,
+	set[loc] srcFiles, int numSrcFiles];
 
-Metrics emptyMetrics = <[], 0, (), (), 0, 0, 0, 0, 0, 0, 0, 0>;
+Metrics emptyMetrics = <[], 0, (), (), 0, 0, 0, 0, 0, 0, 0, 0, {}, 0>;
 
 Metrics metrics(loc prj)
 {
 	Metrics result = emptyMetrics;
-	result.codeLines = getCodeLines(prj);
+	result.srcFiles = srcFiles(prj);
+	result.numSrcFiles = size(result.srcFiles);
+	result.codeLines = getCodeLines(prj, result.srcFiles);
 	result.numCodeLines = numCodeLines(result.codeLines);
 	result.relUnitSizes = unitSizes(prj, result.numCodeLines);
 	result.relUnitComplexities = unitComplexities(prj, result.numCodeLines);
@@ -63,6 +67,7 @@ void ppScores(loc prj)
 	println("Duplication:     " + rank(m.rankDuplication));
 	println("Duplicate lines: " + toString(m.numDuplicates));
 	println("Duplication %:   " + toString(round(100.0 / m.numCodeLines * m.numDuplicates)) + "%");
+	println("Source files:    " + toString(m.numSrcFiles));
 }
 
 void ppRelMap(map[int, num] relNums)
