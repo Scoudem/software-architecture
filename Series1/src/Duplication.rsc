@@ -14,13 +14,20 @@ int rankDuplication(int numCodeLines, int numDuplicates)
 	return rankThresholds(p, thresholds);
 }
 
-list[tuple[int,str]] groupPerSixLines(list[str] cls)
+list[tuple[int,str]] groupPerSixLines(lrel[list[str], loc] codeLines)
 {
-	return for(i <- [0..size(cls)])
-		append(<i, ("" | it + cls[j] + "\n" | j <- [i..min(i+6,size(cls))])>); 
+	result = [];
+	lineCount = 0;
+	for(<cl, _> <- codeLines)
+	{
+		for(i <- [0..max(0, size(cl) - 5)])
+			result += <lineCount + i, ("" | it + cl[j] + "\n" | j <- [i..i+6])>;
+		lineCount += size(cl);
+	}
+	return result; 
 }
 
-int countDuplicates(list[str] cls)
+int countDuplicates(lrel[list[str], loc] cls)
 {
 	clsp6 = groupPerSixLines(cls);
 	seenCode = {};

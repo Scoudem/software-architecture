@@ -6,9 +6,9 @@ import String;
 import lang::java::jdt::m3::Core;
 import Util;
 
-list[str] getCodeLines(loc prj) = concat([cl | <cl, _> <- getCodeLinesPerFile(prj)]);
+int numCodeLines(lrel[list[str], loc] codeLines) = (0 | it + size(cl[0]) | cl <- codeLines);
 
-lrel[list[str], loc] getCodeLinesPerFile(loc prj)
+lrel[list[str], loc] getCodeLines(loc prj)
 {
 	rel[loc,loc] m3Doc = createM3FromEclipseProject(prj).documentation;
 	ls = [<withoutComments(f, m3Doc), f> | f <- srcFiles(prj)];

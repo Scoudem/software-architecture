@@ -13,13 +13,15 @@ import util::Benchmark;
 
 void demo()
 {
+	println("smallsql");
 	println("Time:            " + toString(round(benchmark(("f" : void() 
 		{ppScores(|project://smallsql0.21_src|);}))["f"] / 1000)) + "s");
+	println("\nhsqldb");
 	println("Time:            " + toString(round(benchmark(("f" : void() 
 		{ppScores(|project://hsqldb-2.3.1|);    }))["f"] / 1000)) + "s");
 }
 
-alias Metrics = tuple[list[str] codeLines, int numCodeLines, map[int,num] relUnitSizes,
+alias Metrics = tuple[lrel[list[str], loc] codeLines, int numCodeLines, map[int,num] relUnitSizes,
 	map[int,int] relUnitComplexities, int numDuplicates, int rankUnitSize,
 	int rankUnitComplexity, int rankDuplication, int rankMaintainability,
 	int rankAnalysability, int rankChangeability, int rankTestability];
@@ -30,7 +32,7 @@ Metrics metrics(loc prj)
 {
 	Metrics result = emptyMetrics;
 	result.codeLines = getCodeLines(prj);
-	result.numCodeLines = size(result.codeLines);
+	result.numCodeLines = numCodeLines(result.codeLines);
 	result.relUnitSizes = unitSizes(prj, result.numCodeLines);
 	result.relUnitComplexities = unitComplexities(prj, result.numCodeLines);
 	result.numDuplicates = countDuplicates(result.codeLines);
