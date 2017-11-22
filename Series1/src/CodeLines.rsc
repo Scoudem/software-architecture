@@ -5,6 +5,7 @@ import List;
 import String;
 import lang::java::jdt::m3::Core;
 import Util;
+import Volume2;
 
 int numCodeLines(lrel[list[str], loc] codeLines) = (0 | it + size(cl[0]) | cl <- codeLines);
 
@@ -13,6 +14,8 @@ lrel[list[str], loc] getCodeLines(loc prj, set[loc] srcFiles)
 	rel[loc,loc] m3Doc = createM3FromEclipseProject(prj).documentation;
 	ls = [<withoutComments(f, m3Doc), f> | f <- srcFiles];
 	ls = [<removeEmptyLines(lls<0>), lls<1>> | lls <- ls];
+	
+	//ls = [<linesOfCodeFromFile(f), f> | f <- srcFiles];
 	ls = [<mapper(lls<0>, trim), lls<1>> | lls <- ls];
 	return ls;
 }
