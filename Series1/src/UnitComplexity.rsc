@@ -29,7 +29,7 @@ map[int,num] unitComplexities(loc prj, int numCodeLines)
 		rs[(0 | x.c > m ? it + 1 : it | m <- crs)] += 
 			nCodeLinesFromString(x.l, readFile(x.l));
 	for(i <- rs)
-		rs[i] = (100.0 / numCodeLines) * rs[i];
+		rs[i] = round((100.0 / numCodeLines) * rs[i]);
 	return rs;
 }
 

@@ -29,7 +29,7 @@ map[int,num] unitSizes(loc prj, int numCodeLines)
 	for(x <- methodCodeLines(prj))
 		rs[(0 | x > m ? it + 1 : it | m <- mloc)] += x;
 	for(i <- rs)
-		rs[i] = (100.0 / numCodeLines) * rs[i];
+		rs[i] = round((100.0 / numCodeLines) * rs[i]);
 	return rs;
 }
 
