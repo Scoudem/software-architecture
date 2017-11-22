@@ -7,25 +7,29 @@ import List;
 import Volume;
 import IO;
 
-int rankUnitComplexity(map[int,int] relUnitComplexities)
+int rankUnitComplexity(map[int,num] relUnitComplexities)
 {
-	list[tuple[int,int,int]] thresholds = 
-		[<1,25,1>,<2, 0,1>,<3,0,1>,
-		 <1,30,2>,<2, 5,2>,<3,0,2>,
-		 <1,40,3>,<2,10,3>,<3,0,3>,
-		 <1,50,4>,<2,15,4>,<3,5,4>];
+	// Source for thresholds:
+	// Alves, Tiago L., José Pedro Correia, and Joost Visser. "Benchmark-based aggregation of metrics to ratings." Software Measurement, 2011 Joint Conference of the 21st Int'l Workshop on and 6th Int'l Conference on Software Process and Product Measurement (IWSM-MENSURA). IEEE, 2011.
+	list[tuple[int,num,int]] thresholds =
+		[<1,17.9,1>,<2, 9.9,1>,<3, 3.3,1>,
+		 <1,23.4,2>,<2,16.9,2>,<3, 6.7,2>,
+		 <1,31.3,3>,<2,23.8,3>,<3,10.6,3>,
+		 <1,39.1,4>,<2,29.8,4>,<3,16.7,4>];
 	return rankThresholds(relUnitComplexities, thresholds);
 }
 
-map[int,int] unitComplexities(loc prj, int numCodeLines)
+map[int,num] unitComplexities(loc prj, int numCodeLines)
 {
-	list[int] crs = [10,20,50];
-	map[int, int] rs = (0:0, 1:0, 2:0, 3:0);
+	// Source for thresholds:
+	// Alves, Tiago L., José Pedro Correia, and Joost Visser. "Benchmark-based aggregation of metrics to ratings." Software Measurement, 2011 Joint Conference of the 21st Int'l Workshop on and 6th Int'l Conference on Software Process and Product Measurement (IWSM-MENSURA). IEEE, 2011.
+	list[int] crs = [6,8,14];
+	map[int, num] rs = (0:0, 1:0, 2:0, 3:0);
 	for(x <- methodComplexities(prj))
 		rs[(0 | x.c > m ? it + 1 : it | m <- crs)] += 
 			nCodeLinesFromString(x.l, readFile(x.l));
 	for(i <- rs)
-		rs[i] = toInt(round((100.0 / numCodeLines) * rs[i]));
+		rs[i] = round((100.0 / numCodeLines) * rs[i]);
 	return rs;
 }
 

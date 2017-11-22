@@ -23,7 +23,7 @@ void demo()
 }
 
 alias Metrics = tuple[lrel[list[str], loc] codeLines, int numCodeLines, map[int,num] relUnitSizes,
-	map[int,int] relUnitComplexities, int numDuplicates, int rankUnitSize,
+	map[int,num] relUnitComplexities, int numDuplicates, int rankUnitSize,
 	int rankUnitComplexity, int rankDuplication, int rankMaintainability,
 	int rankAnalysability, int rankChangeability, int rankTestability,
 	set[loc] srcFiles, int numSrcFiles];
