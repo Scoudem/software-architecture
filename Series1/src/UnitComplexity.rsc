@@ -7,7 +7,7 @@ import List;
 import Volume;
 import IO;
 
-int rankUnitComplexity(map[int,int] relUnitComplexities)
+int rankUnitComplexity(map[int,num] relUnitComplexities)
 {
 	// Source for thresholds:
 	// Alves, Tiago L., José Pedro Correia, and Joost Visser. "Benchmark-based aggregation of metrics to ratings." Software Measurement, 2011 Joint Conference of the 21st Int'l Workshop on and 6th Int'l Conference on Software Process and Product Measurement (IWSM-MENSURA). IEEE, 2011.
