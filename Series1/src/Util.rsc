@@ -15,9 +15,6 @@ set[loc] srcFiles(loc prj)
 	return {f | /file(f) <- [contents | /folder(dir, contents) <- getProject(prj), dir in srcDirs], endsWith(f.file, ".java")};
 }
 
-// A list of all lines in the files in the set
-list[str] allLines(set[loc] xs) = concat([readFileLines(s) | s <- xs]);
-
 str rank(int i) = ["++", "+", "o", "-", "--"][i];
 
 int rankThresholds(int val, list[int] thresholds) =

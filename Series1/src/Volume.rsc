@@ -9,10 +9,9 @@ import lang::java::jdt::m3::Core;
 
 int rankVolume(int numCodeLines)
 {
-	str lng = "java";
-	map[str,list[int]] kloc = ("java"  : [66,246,665,1310]);
+	list[int] kloc = [66,246,665,1310];
 	int n = numCodeLines / 1000;
-	return rankThresholds(n, kloc["java"]);
+	return rankThresholds(n, kloc);
 }
 
 int nCodeLinesFromString(loc prj, str contents)
