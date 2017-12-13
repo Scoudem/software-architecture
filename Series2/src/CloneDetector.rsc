@@ -21,13 +21,50 @@ void v2()
 	println(benchmark(("f" : void() {
 	
 	cl = getCodeLines(prj, srcFiles(prj));
+	numCl = numCodeLines(cl);
+
 	clsp6 = groupPerSixLines(cl);
 	clsp6id = addGroupIds(clsp6);
 	groups = cloneGroups(clsp6id);
 	result = merge(groups);
 	writeCloneGroups(result);
+	print(calcStatistics(result, numCl));
 
 	}))["f"] / 1000);
+}
+
+str calcStatistics(list[tuple[str,loc,list[int]]] clones, int nCodeLines)
+{
+	int count = 0, dupLines = 0, cClones = size(clones), cClasses = 0;
+	tuple[str,loc,list[int],int] biggestClone = <"",|unknown:///|,[],0>;
+	tuple[str,int] biggestClass = <"",0>;
+	map[str,int] classSizes = ();
+	map[str,int] ids = ();
+	for(<str i, loc f, list[int] ls> <- clones)
+	{
+		int curSize = size(ls);
+		dupLines += curSize;
+		if(i notin ids)
+		{
+			ids[i] = count;
+			count += 1;
+			cClasses += 1;
+			classSizes[i] = 0;
+		}
+		if(curSize > biggestClone<3>)
+			biggestClone = <i, f, ls, curSize>;
+		classSizes[i] += curSize;
+		if(classSizes[i] > biggestClass<1>)
+			biggestClass = <i, classSizes[i]>;
+	}
+	int pDuplication = toInt(round(100.0 / nCodeLines * dupLines));
+	str result = "";
+	result += "% Duplicates lines:     " + toString(pDuplication) + "\n";
+	result += "Number of clones:       " + toString(count) + "\n";
+	result += "Biggest clone size:     " + toString(biggestClone<3>) + "\n";
+	result += "Biggest clone location: " + biggestClone<1>.uri + " at line " + toString(top(biggestClone<2>)) + "\n";
+	result += "Biggest class size:     " + toString(biggestClass<1>) + " (see " + toString(ids[biggestClass<0>]) + ".txt for details)\n";
+	return result;
 }
 
 void writeCloneGroups(list[tuple[str,loc,list[int]]] clones)
@@ -43,7 +80,7 @@ void writeCloneGroups(list[tuple[str,loc,list[int]]] clones)
 			ids[i] = count;
 			count += 1;
 		}
-		txtFile = cloneDir + (toString(ids[i]) + ".txt");//TODO
+		txtFile = cloneDir + (toString(ids[i]) + ".txt");
 		if(!exists(txtFile)) writeFile(txtFile, "");
 		appendToFile(txtFile, f.file + ":\n" + readFileLines1(f, ls) + "\n");
 	}
@@ -57,7 +94,7 @@ str readFileLines1(loc f, list[int] ls)
 
 list[tuple[str,loc,list[int]]] getClonesFromProject(loc prj) = merge(cloneGroups(addGroupIds(groupPerSixLines(getCodeLines(prj, srcFiles(prj))))));
 
-int numCodeLines(lrel[list[str], loc] codeLines) = (0 | it + size(cl[0]) | cl <- codeLines);
+int numCodeLines(lrel[list[tuple[str,int]], loc] codeLines) = (0 | it + size(cl[0]) | cl <- codeLines);
 
 lrel[list[tuple[str,int]], loc] getCodeLines(loc prj, set[loc] srcFiles)
 {
