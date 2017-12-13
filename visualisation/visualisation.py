@@ -40,7 +40,7 @@ def main():
 
 
 def impl_pysdl2_init():
-    width, height = 1000, 1000
+    width, height = 1000, 780
     window_name = "Clone visualisation"
 
     if SDL_Init(SDL_INIT_EVERYTHING) < 0:
@@ -64,7 +64,7 @@ def impl_pysdl2_init():
     window = SDL_CreateWindow(window_name.encode('utf-8'),
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               width, height,
-                              SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE)
+                              SDL_WINDOW_OPENGL)
 
     if window is None:
         print("Error: Window could not be created! SDL Error: " + SDL_GetError())
@@ -84,5 +84,4 @@ def impl_pysdl2_init():
 
 
 if __name__ == "__main__":
-    render.setup()
     main()
