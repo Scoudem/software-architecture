@@ -28,6 +28,7 @@ void v2()
 	groups = cloneGroups(clsp6id);
 	result = merge(groups);
 	writeCloneGroups(result);
+	writeCloneGroupsJSON(result);
 	print(calcStatistics(result, numCl));
 
 	}))["f"] / 1000);
@@ -84,6 +85,54 @@ void writeCloneGroups(list[tuple[str,loc,list[int]]] clones)
 		if(!exists(txtFile)) writeFile(txtFile, "");
 		appendToFile(txtFile, f.file + ":\n" + readFileLines1(f, ls) + "\n");
 	}
+}
+
+void writeCloneGroupsJSON(list[tuple[str,loc,list[int]]] clones)
+{
+	jsonFile = toLocation("home:///clones/visualization.json");
+	writeFile(jsonFile, "[\n");
+	map[int,map[loc,list[tuple[int,int]]]] result = ();
+	int count = 0;
+	map[str,int] ids = ();
+	for(<str i, loc f, list[int] ls> <- clones)
+	{
+		if(i notin ids)
+		{
+			ids[i] = count;
+			count += 1;
+			result[ids[i]] = ();
+		}
+		if(f notin result[ids[i]])
+			result[ids[i]] += (f:[]);
+		result[ids[i]][f] += <top(ls),last(ls)>;
+	}
+	list[str] cs = [];
+	for(i <- result)
+	{
+		str c = "{\"class\": " + toString(i) + ",\n\"files\": [\n";
+		list[str] fs = [];
+		for(f <- result[i])
+		{
+			str fent = "{\"file\": \"" + location(f).path + "\",\n\"entries\": [\n";
+			list[str] ents = [];
+			for(<bl, el> <- result[i][f])
+			{
+				ents += "{\n"
+					+ "\"beginline\": " + toString(bl) + ",\n"
+					+ "\"endline\": " + toString(el) + ",\n"
+					+ "\"content\": [\""+ intercalate("\",\"", mapper(readFileLines(f)[bl..(el+1)], trim)) +"\"]\n"
+					+ "}";
+			}
+			fent += intercalate(",\n", ents);
+			fent += "\n]}";
+			fs += fent;
+		}
+		c += intercalate(",\n", fs);
+		c += "]}";
+		cs += c;
+	}
+	appendToFile(jsonFile, intercalate(",\n", cs));
+	appendToFile(jsonFile, "]\n");
 }
 
 str readFileLines1(loc f, list[int] ls)
