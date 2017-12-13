@@ -30,13 +30,20 @@ void v2()
 	}))["f"] / 1000);
 }
 
-void writeCloneGroups(list[tuple[int,loc,list[int]]] clones)
+void writeCloneGroups(list[tuple[str,loc,list[int]]] clones)
 {
 	cloneDir = toLocation("home:///clones");
 	map[int, str] result = ();
-	for(<int i, loc f, list[int] ls> <- clones)
+	int count = 0;
+	map[str,int] ids = ();
+	for(<str i, loc f, list[int] ls> <- clones)
 	{
-		txtFile = cloneDir + (toString(i) + ".txt");
+		if(i notin ids)
+		{
+			ids[i] = count;
+			count += 1;
+		}
+		txtFile = cloneDir + (toString(ids[i]) + ".txt");//TODO
 		if(!exists(txtFile)) writeFile(txtFile, "");
 		appendToFile(txtFile, f.file + ":\n" + readFileLines1(f, ls) + "\n");
 	}
@@ -48,7 +55,7 @@ str readFileLines1(loc f, list[int] ls)
 	return ("" | it + fls[i] + "\n" | i <- ls);
 }
 
-list[tuple[int,loc,list[int]]] getClonesFromProject(loc prj) = merge(cloneGroups(addGroupIds(groupPerSixLines(getCodeLines(prj, srcFiles(prj))))));
+list[tuple[str,loc,list[int]]] getClonesFromProject(loc prj) = merge(cloneGroups(addGroupIds(groupPerSixLines(getCodeLines(prj, srcFiles(prj))))));
 
 int numCodeLines(lrel[list[str], loc] codeLines) = (0 | it + size(cl[0]) | cl <- codeLines);
 
@@ -127,11 +134,11 @@ set[tuple[str,loc,list[int]]] groupPerSixLines(lrel[list[tuple[str,int]], loc] c
 	return result; 
 }
 
-set[tuple[int,loc,list[int]]] cloneGroups(set[tuple[int,loc,list[int]]] clsp6id)
+set[tuple[str,loc,list[int]]] cloneGroups(set[tuple[str,loc,list[int]]] clsp6id)
 {
 	result = {};
-	map[int, tuple[int,loc,list[int]]] seen = ();
-	for(cur: <int id, loc f, list[int] ls> <- clsp6id)
+	map[str, tuple[str,loc,list[int]]] seen = ();
+	for(cur: <str id, loc f, list[int] ls> <- clsp6id)
 		if(id in seen)
 		{
 			result += seen[id];
@@ -144,12 +151,12 @@ set[tuple[int,loc,list[int]]] cloneGroups(set[tuple[int,loc,list[int]]] clsp6id)
 
 int getId(tuple[int,loc,list[int]] x) = x<0>;
 
-set[tuple[int,loc,list[int]]] addGroupIds(set[tuple[str,loc,list[int]]] clsp6) = 
+set[tuple[str,loc,list[int]]] addGroupIds(set[tuple[str,loc,list[int]]] clsp6) = 
 	{ <badHash(cl), f, ls> | <cl,f,ls> <- clsp6 };
 
 bool offsetMoreThan(loc a, loc b) = a.offset > b.offset;
 
-bool fileThenLineLessThan(tuple[int,loc,list[int]] a, tuple[int,loc,list[int]] b) 
+bool fileThenLineLessThan(tuple[str,loc,list[int]] a, tuple[str,loc,list[int]] b) 
 {
 	if(a<1>.file == b<1>.file)
 		if(top(a<2>) < top(b<2>))
@@ -159,18 +166,18 @@ bool fileThenLineLessThan(tuple[int,loc,list[int]] a, tuple[int,loc,list[int]] b
 	return false;
 }
 
-list[tuple[int,loc,list[int]]] merge(set[tuple[int,loc,list[int]]] clsp6id)
+list[tuple[str,loc,list[int]]] merge(set[tuple[str,loc,list[int]]] clsp6id)
 {
-	list[tuple[int,loc,list[int]]] clsp6srt = sort(clsp6id, fileThenLineLessThan);
+	list[tuple[str,loc,list[int]]] clsp6srt = sort(clsp6id, fileThenLineLessThan);
 	result = [];
-	map[int,int] mergedGroupIds = ();
-	tuple[int,loc,list[int]] prev = <-1,|unknown:///|,[]>;
+	map[str,str] mergedGroupIds = ();
+	tuple[str,loc,list[int]] prev = <"",|unknown:///|,[]>;
 	int pos = -1;
-	for(<int id, loc f, list[int] ls> <- clsp6srt)
+	for(<str id, loc f, list[int] ls> <- clsp6srt)
 	{
 		if(id in mergedGroupIds)
 			id = mergedGroupIds[id];
-		cur = <-1,|unknown:///|,[]>;
+		cur = <"",|unknown:///|,[]>;
 		if(prev<1> == f && last(prev<2>) >= top(ls))
 		{
 			cur = <prev<0>, f, dup(prev<2> + ls)>;
@@ -188,4 +195,4 @@ list[tuple[int,loc,list[int]]] merge(set[tuple[int,loc,list[int]]] clsp6id)
 	return result;
 }
 
-int badHash(str cl) = sum(chars(cl)) / 10 * 1000 + size(cl);
+str badHash(str cl) = cl;
