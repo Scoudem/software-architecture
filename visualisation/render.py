@@ -89,16 +89,17 @@ def render():
     imgui.begin("Clone Classes", False, imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE)
 
     for index, clone_class in enumerate(clones):
-        if selected_index is index:
-            label = "--> Clone class {0:3d}".format(clone_class.class_identifier)
-        else:
-            label = "Clone class {0:3d}".format(clone_class.class_identifier)
 
-        if imgui.button(label):
-            if selected_index is index:
+        if selected_index is clone_class.class_identifier:
+            label = "--> Clone class {0:03d}".format(clone_class.class_identifier)
+        else:
+            label = "Clone class {0:03d}".format(clone_class.class_identifier)
+
+        if imgui.button(label, width=260):
+            if selected_index is clone_class.class_identifier:
                 selected_index = None
             else:
-                selected_index = index
+                selected_index = clone_class.class_identifier
                 selected_file = None
                 clones_for_file = None
 
@@ -114,7 +115,7 @@ def render():
         else:
             label = "{}".format(file_name)
 
-        if imgui.button(label):
+        if imgui.button(label, width=260):
             if selected_file is file_name:
                 selected_file = None
                 clones_for_file = None
@@ -131,13 +132,18 @@ def render():
     if selected_file is not None and clones_for_file is not None:
         for class_identifier, file in clones_for_file:
             expanded, visible = imgui.collapsing_header(
-                "Clone class {0:3d}".format(class_identifier), None, imgui.TREE_NODE_DEFAULT_OPEN
+                "Clone class {0:03d}".format(class_identifier), None, imgui.TREE_NODE_DEFAULT_OPEN
             )
 
             if expanded:
+                if imgui.button("View all files for clone class {0:03d}".format(class_identifier)):
+                    selected_index = class_identifier
+                    selected_file = None
+                    clones_for_file = None
+
                 for entry in file.entries:
                     for index, line_number in enumerate(range(entry.begin_line, entry.end_line + 1)):
-                        imgui.text("{0:3d} {1}".format(line_number, entry.content[index]))
+                        imgui.text("{0:03d}\t{1}".format(line_number, entry.content[index]))
 
                     imgui.spacing()
                     imgui.spacing()
@@ -145,13 +151,17 @@ def render():
                     imgui.spacing()
 
     if selected_index is not None:
-        clone_class = clones[selected_index]
+        clone_class = None
+
+        for clone in clones:
+            if clone.class_identifier is selected_index:
+                clone_class = clone
 
         for i, file in enumerate(clone_class.files):
             expanded, visible = imgui.collapsing_header(file.file_name, None, imgui.TREE_NODE_DEFAULT_OPEN)
 
             if expanded:
-                if imgui.button("View all clones for {}".format(file.file_name)):
+                if imgui.button("View all clones for \"{}\"".format(file.file_name)):
                     selected_file = file.file_name
 
                     if clones_for_file is None:
@@ -161,7 +171,7 @@ def render():
 
                 for entry in file.entries:
                     for index, line_number in enumerate(range(entry.begin_line, entry.end_line + 1)):
-                        imgui.text("{0:3d} {1}".format(line_number, entry.content[index]))
+                        imgui.text("{0:03d}\t{1}".format(line_number, entry.content[index]))
 
                     imgui.spacing()
                     imgui.spacing()

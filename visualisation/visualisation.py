@@ -26,7 +26,7 @@ def main():
 
         render.render()
 
-        gl.glClearColor(1., 1., 1., 1)
+        gl.glClearColor(0.9, 1., 1., 1)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
         imgui.render()
@@ -44,7 +44,7 @@ def impl_pysdl2_init():
     window_name = "Clone visualisation"
 
     if SDL_Init(SDL_INIT_EVERYTHING) < 0:
-        print("Error: SDL could not initialize! SDL Error: " + SDL_GetError())
+        print("Error: SDL could not initialize! SDL Error: " + str(SDL_GetError()))
         exit(1)
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1)
@@ -67,17 +67,17 @@ def impl_pysdl2_init():
                               SDL_WINDOW_OPENGL)
 
     if window is None:
-        print("Error: Window could not be created! SDL Error: " + SDL_GetError())
+        print("Error: Window could not be created! SDL Error: " + str(SDL_GetError()))
         exit(1)
 
     gl_context = SDL_GL_CreateContext(window)
     if gl_context is None:
-        print("Error: Cannot create OpenGL Context! SDL Error: " + SDL_GetError())
+        print("Error: Cannot create OpenGL Context! SDL Error: " + str(SDL_GetError()))
         exit(1)
 
     SDL_GL_MakeCurrent(window, gl_context)
     if SDL_GL_SetSwapInterval(1) < 0:
-        print("Warning: Unable to set VSync! SDL Error: " + SDL_GetError())
+        print("Warning: Unable to set VSync! SDL Error: " + str(SDL_GetError()))
         exit(1)
 
     return window, gl_context
