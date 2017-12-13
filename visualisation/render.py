@@ -91,9 +91,9 @@ def render():
     for index, clone_class in enumerate(clones):
 
         if selected_index is clone_class.class_identifier:
-            label = "--> Clone class {0:03d}".format(clone_class.class_identifier)
+            label = "--> Clone class {0:03d} ({1} files)".format(clone_class.class_identifier, len(clone_class.files))
         else:
-            label = "Clone class {0:03d}".format(clone_class.class_identifier)
+            label = "Clone class {0:03d} ({1} files)".format(clone_class.class_identifier, len(clone_class.files))
 
         if imgui.button(label, width=260):
             if selected_index is clone_class.class_identifier:
@@ -127,7 +127,7 @@ def render():
 
     imgui.set_next_window_position(300, 10)
     imgui.set_next_window_size(690, 760)
-    imgui.begin("Clones", False, imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE)
+    imgui.begin("Details", False, imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE)
 
     if selected_file is not None and clones_for_file is not None:
         for class_identifier, file in clones_for_file:
@@ -173,9 +173,10 @@ def render():
                     for index, line_number in enumerate(range(entry.begin_line, entry.end_line + 1)):
                         imgui.text("{0:03d}\t{1}".format(line_number, entry.content[index]))
 
-                    imgui.spacing()
-                    imgui.spacing()
-                    imgui.spacing()
-                    imgui.spacing()
+                    if entry is not file.entries[-1]:
+                        imgui.spacing()
+                        imgui.spacing()
+                        imgui.spacing()
+                        imgui.spacing()
 
     imgui.end()
