@@ -40,15 +40,20 @@ class CloneClass:
         return CloneClass(data['class'], [FileEntry.from_json(j) for j in data['files']])
 
 
-def parse_clone_file(clone_file: str) -> CloneClass:
+def parse_clone_file(clone_file: str) -> List[CloneClass]:
     with open(clone_file, 'r') as file:
         data = json.load(file)
-        return CloneClass.from_json(data)
+        return [CloneClass.from_json(entry) for entry in data]
 
 
 def read_all_clones() -> List[CloneClass]:
-    clone_files = glob.glob(os.path.expanduser('~') + '/clones/*.txt')
-    return [parse_clone_file(f) for f in clone_files]
+    clone_files = glob.glob(os.path.expanduser('~') + '/clones/*.json')
+
+    matches = []
+    for f in clone_files:
+        matches += parse_clone_file(f)
+
+    return matches
 
 
 def extract_unique_names() -> List[str]:
@@ -111,9 +116,9 @@ def render():
 
     for index, file_name in enumerate(unique_file_name):
         if selected_file is file_name:
-            label = "--> {}".format(file_name)
+            label = "--> {}".format(os.path.basename(file_name))
         else:
-            label = "{}".format(file_name)
+            label = "{}".format(os.path.basename(file_name))
 
         if imgui.button(label, width=260):
             if selected_file is file_name:

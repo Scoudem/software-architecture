@@ -14,8 +14,8 @@ import util::ValueUI;
 
 void v2()
 {
-	prj = |project://HelloWorld|;
-	//prj = |project://smallsql0.21_src|;
+	//prj = |project://HelloWorld|;
+	prj = |project://smallsql0.21_src|;
 	//prj = |project://hsqldb-2.3.1|;
 	
 	println(benchmark(("f" : void() {
@@ -29,7 +29,7 @@ void v2()
 	result = merge(groups);
 	writeCloneGroups(result);
 	writeCloneGroupsJSON(result);
-	print(calcStatistics(result, numCl));
+	//print(calcStatistics(result, numCl));
 
 	}))["f"] / 1000);
 }
