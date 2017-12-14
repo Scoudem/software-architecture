@@ -54,6 +54,7 @@ selected_index = None
 selected_file = None
 clones_for_file = None
 file_buffers = {}
+padding = 5
 
 
 def select_clone(class_identifier):
@@ -103,7 +104,7 @@ def read_files_in_buffer():
 
 
 def render():
-    global selected_index, selected_file, clones_for_file
+    global selected_index, selected_file, clones_for_file, padding
 
     imgui.set_next_window_position(10, 10)
     imgui.set_next_window_size(280, 375)
@@ -201,10 +202,22 @@ def render():
         for _, file in clones_for_file:
             total_cloned_lines += file.num_cloned_lines
 
+        imgui.begin_group()
         imgui.text("Information for this file")
         imgui.bullet_text("This file contains {} lines".format(file_buffer.max_line))
         imgui.bullet_text("{} lines are cloned".format(total_cloned_lines))
         imgui.bullet_text("That is {0:.2f}% of the total file".format(total_cloned_lines / file_buffer.max_line * 100))
+        imgui.end_group()
+
+        imgui.same_line(300)
+
+        imgui.push_item_width(200)
+        imgui.begin_group()
+        changed, value = imgui.slider_int("Lines of padding", padding, 0, 100)
+        if changed:
+            padding = value
+        imgui.end_group()
+        imgui.pop_item_width()
 
         imgui.spacing()
         imgui.spacing()
@@ -220,9 +233,17 @@ def render():
                 if imgui.button("View all files for clone class {0:03d}".format(class_identifier)):
                     select_clone(class_identifier)
 
-                file_buffers[file.file_name].to_imgui(file)
+                file_buffers[file.file_name].to_imgui(file, padding)
 
     if selected_index is not None:
+        imgui.push_item_width(200)
+        imgui.begin_group()
+        changed, value = imgui.slider_int("Lines of padding", padding, 0, 100)
+        if changed:
+            padding = value
+        imgui.end_group()
+        imgui.pop_item_width()
+
         clone_class = None
 
         for clone in clones:
@@ -236,7 +257,7 @@ def render():
                 if imgui.button("View all clones for \"{}\"".format(file.file_name)):
                     select_file(file.file_name)
 
-                file_buffers[file.file_name].to_imgui(file)
+                file_buffers[file.file_name].to_imgui(file, padding)
 
 
     imgui.end()
