@@ -150,6 +150,9 @@ def render():
     )
 
     if selected_file is not None and clones_for_file is not None:
+        if imgui.button("Open file in editor"):
+            os.system("open \"{}\"".format(selected_file))
+
         for class_identifier, file in clones_for_file:
             expanded, visible = imgui.collapsing_header(
                 "Clone class {0:03d}".format(class_identifier), None, imgui.TREE_NODE_DEFAULT_OPEN
