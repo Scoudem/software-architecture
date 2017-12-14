@@ -40,7 +40,7 @@ def main():
 
 
 def impl_pysdl2_init():
-    width, height = 1000, 780
+    width, height = 1200, 780
     window_name = "Clone visualisation"
 
     if SDL_Init(SDL_INIT_EVERYTHING) < 0:
