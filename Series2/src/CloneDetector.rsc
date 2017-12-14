@@ -11,6 +11,7 @@ import util::Benchmark;
 import util::Math;
 import util::Resources;
 import util::ValueUI;
+import ValueIO;
 
 void v2()
 {
@@ -32,6 +33,35 @@ void v2()
 	//print(calcStatistics(result, numCl));
 
 	}))["f"] / 1000);
+}
+
+void generateTestFiles()
+{
+	prj = |project://CloneDetectorTest|;
+	cl = getCodeLines(prj, srcFiles(prj));
+	output = <prj, cl>;
+	writeTextValueFile(|home:///clones/tests/CodeLines.txt|, output);
+	
+	clsp6 = groupPerSixLines(cl);
+	output = <cl, clsp6>;
+	writeTextValueFile(|home:///clones/tests/GroupsPerSix.txt|, output);
+	
+	clsp6id = addGroupIds(clsp6);
+	groups = cloneGroups(clsp6id);
+	output = <clsp6id, groups>;
+	writeTextValueFile(|home:///clones/tests/GroupsPerClass.txt|, output);
+	
+	result = merge(groups);
+	numCl = numCodeLines(cl);
+	stats = calcStatistics(result, numCl);
+	output = <result, numCl, stats>;
+	writeTextValueFile(|home:///clones/tests/Statistics.txt|, output);
+}
+
+test bool statistics()
+{
+	<result, numCl, stats> = readTextValueFile(#tuple[list[tuple[str,loc,list[int]]],int,str], |home:///clones/tests/Statistics.txt|);
+    return stats == calcStatistics(result, numCl);
 }
 
 str calcStatistics(list[tuple[str,loc,list[int]]] clones, int nCodeLines)
@@ -145,6 +175,13 @@ str readFileLines1(loc f, list[int] ls)
 
 list[tuple[str,loc,list[int]]] getClonesFromProject(loc prj) = merge(cloneGroups(addGroupIds(groupPerSixLines(getCodeLines(prj, srcFiles(prj))))));
 
+
+test bool codeLines()
+{
+	<prj, cl> = readTextValueFile(#tuple[loc,lrel[list[tuple[str,int]], loc]], |home:///clones/tests/CodeLines.txt|);
+    return cl == getCodeLines(prj, srcFiles(prj));
+}
+
 int numCodeLines(lrel[list[tuple[str,int]], loc] codeLines) = (0 | it + size(cl[0]) | cl <- codeLines);
 
 lrel[list[tuple[str,int]], loc] getCodeLines(loc prj, set[loc] srcFiles)
@@ -204,6 +241,12 @@ set[loc] srcFiles(loc prj)
 	return {f | /file(f) <- [contents | /folder(dir, contents) <- getProject(prj), dir in srcDirs], endsWith(f.file, ".java")};
 }
 
+test bool groupP6Lines()
+{
+	<cl, clsp6> = readTextValueFile(#tuple[lrel[list[tuple[str,int]], loc],set[tuple[str,loc,list[int]]]], |home:///clones/tests/GroupsPerSix.txt|);
+    return clsp6 == groupPerSixLines(cl);;
+}
+
 set[tuple[str,loc,list[int]]] groupPerSixLines(lrel[list[tuple[str,int]], loc] codeLines)
 {
 	result = {};
@@ -220,6 +263,12 @@ set[tuple[str,loc,list[int]]] groupPerSixLines(lrel[list[tuple[str,int]], loc] c
 			result += <code, f, lns>;
 		}
 	return result; 
+}
+
+test bool groupedClones()
+{
+	<clsp6id, groups> = readTextValueFile(#tuple[set[tuple[str,loc,list[int]]],set[tuple[str,loc,list[int]]]], |home:///clones/tests/GroupsPerClass.txt|);
+    return groups == cloneGroups(clsp6id);;
 }
 
 set[tuple[str,loc,list[int]]] cloneGroups(set[tuple[str,loc,list[int]]] clsp6id)
