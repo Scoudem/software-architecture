@@ -87,6 +87,8 @@ void writeCloneGroups(list[tuple[str,loc,list[int]]] clones)
 	}
 }
 
+str escapeJSON(str s) = escape(s, ("\"":"\\\"","\\":"\\\\","\t":"    "));
+
 void writeCloneGroupsJSON(list[tuple[str,loc,list[int]]] clones)
 {
 	jsonFile = toLocation("home:///clones/visualization.json");
@@ -120,7 +122,7 @@ void writeCloneGroupsJSON(list[tuple[str,loc,list[int]]] clones)
 				ents += "{\n"
 					+ "\"beginline\": " + toString(bl) + ",\n"
 					+ "\"endline\": " + toString(el) + ",\n"
-					+ "\"content\": [\""+ intercalate("\",\"", mapper(readFileLines(f)[bl..(el+1)], trim)) +"\"]\n"
+					+ "\"content\": [\""+ intercalate("\",\"", mapper(mapper(readFileLines(f)[bl..(el+1)], trim), escapeJSON)) +"\"]\n"
 					+ "}";
 			}
 			fent += intercalate(",\n", ents);
