@@ -5,39 +5,8 @@ from typing import List
 import imgui
 import os
 
-
-class CloneEntry:
-
-    def __init__(self, begin_line: int, end_line: int, content: List[str]):
-        self.begin_line = begin_line
-        self.end_line = end_line
-        self.content = content
-
-    @staticmethod
-    def from_json(data):
-        return CloneEntry(data['beginline'], data['endline'], data['content'])
-
-
-class FileEntry:
-
-    def __init__(self, file_name: str, entries: List[CloneEntry]):
-        self.file_name = file_name
-        self.entries = entries
-
-    @staticmethod
-    def from_json(data):
-        return FileEntry(data['file'], [CloneEntry.from_json(j) for j in data['entries']])
-
-
-class CloneClass:
-
-    def __init__(self, class_identifier: int, files: List[FileEntry]):
-        self.class_identifier = class_identifier
-        self.files = files
-
-    @staticmethod
-    def from_json(data):
-        return CloneClass(data['class'], [FileEntry.from_json(j) for j in data['files']])
+import filereader
+from models import CloneClass
 
 
 def parse_clone_file(clone_file: str) -> List[CloneClass]:
@@ -53,7 +22,7 @@ def read_all_clones() -> List[CloneClass]:
     for f in clone_files:
         matches += parse_clone_file(f)
 
-    return matches
+    return sorted(matches, key=lambda x: x.class_identifier)
 
 
 def extract_unique_names() -> List[str]:
@@ -84,6 +53,53 @@ unique_file_name: List[str] = extract_unique_names()
 selected_index = None
 selected_file = None
 clones_for_file = None
+file_buffers = {}
+
+
+def select_clone(class_identifier):
+    global selected_index, selected_file, clones_for_file, file_buffers
+
+    if selected_index is class_identifier:
+        selected_index = None
+    else:
+        selected_index = class_identifier
+        selected_file = None
+        clones_for_file = None
+
+    read_files_in_buffer()
+
+
+def select_file(file_name):
+    global selected_index, selected_file, clones_for_file
+
+    if selected_file is file_name:
+        selected_file = None
+        clones_for_file = None
+    else:
+        selected_file = file_name
+        clones_for_file = get_clones_for_file(file_name)
+        selected_index = None
+
+    read_files_in_buffer()
+
+
+def read_files_in_buffer():
+    global file_buffers
+
+    file_buffers = {}
+
+    if selected_index is not None:
+        clone_class = None
+
+        for clone in clones:
+            if clone.class_identifier is selected_index:
+                clone_class = clone
+
+        for file in clone_class.files:
+            file_buffers[file.file_name] = filereader.FileBuffer(file.file_name)
+
+    elif selected_file is not None:
+        file_buffers[selected_file] = filereader.FileBuffer(selected_file)
 
 
 def render():
@@ -96,17 +112,16 @@ def render():
     for index, clone_class in enumerate(clones):
 
         if selected_index is clone_class.class_identifier:
-            label = "--> Clone class {0:03d} ({1} files)".format(clone_class.class_identifier, len(clone_class.files))
+            label = "--> Class {0:03d} ({1} files, {2} clones)".format(
+                clone_class.class_identifier, len(clone_class.files), clone_class.num_clones
+            )
         else:
-            label = "Clone class {0:03d} ({1} files)".format(clone_class.class_identifier, len(clone_class.files))
+            label = "Class {0:03d} ({1} files, {2} clones)".format(
+                clone_class.class_identifier, len(clone_class.files), clone_class.num_clones
+            )
 
         if imgui.button(label, width=260):
-            if selected_index is clone_class.class_identifier:
-                selected_index = None
-            else:
-                selected_index = clone_class.class_identifier
-                selected_file = None
-                clones_for_file = None
+            select_clone(clone_class.class_identifier)
 
     imgui.end()
 
@@ -121,18 +136,18 @@ def render():
             label = "{}".format(os.path.basename(file_name))
 
         if imgui.button(label, width=260):
-            if selected_file is file_name:
-                selected_file = None
-                clones_for_file = None
-            else:
-                selected_file = file_name
-                clones_for_file = get_clones_for_file(file_name)
-                selected_index = None
+            select_file(file_name)
+
     imgui.end()
 
     imgui.set_next_window_position(300, 10)
-    imgui.set_next_window_size(690, 760)
-    imgui.begin("Details", False, imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE)
+    imgui.set_next_window_size(890, 760)
+    imgui.begin(
+        "Details",
+        False,
+        imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE |
+        imgui.WINDOW_NO_COLLAPSE | imgui.WINDOW_HORIZONTAL_SCROLLING_BAR
+    )
 
     if selected_file is not None and clones_for_file is not None:
         for class_identifier, file in clones_for_file:
@@ -142,18 +157,9 @@ def render():
 
             if expanded:
                 if imgui.button("View all files for clone class {0:03d}".format(class_identifier)):
-                    selected_index = class_identifier
-                    selected_file = None
-                    clones_for_file = None
+                    select_clone(class_identifier)
 
-                for entry in file.entries:
-                    for index, line_number in enumerate(range(entry.begin_line, entry.end_line + 1)):
-                        imgui.text("{0:03d}\t{1}".format(line_number, entry.content[index]))
-
-                    imgui.spacing()
-                    imgui.spacing()
-                    imgui.spacing()
-                    imgui.spacing()
+                file_buffers[file.file_name].to_imgui(file)
 
     if selected_index is not None:
         clone_class = None
@@ -167,21 +173,9 @@ def render():
 
             if expanded:
                 if imgui.button("View all clones for \"{}\"".format(file.file_name)):
-                    selected_file = file.file_name
+                    select_file(file.file_name)
 
-                    if clones_for_file is None:
-                        clones_for_file = get_clones_for_file(file.file_name)
+                file_buffers[file.file_name].to_imgui(file)
 
-                    selected_index = None
-
-                for entry in file.entries:
-                    for index, line_number in enumerate(range(entry.begin_line, entry.end_line + 1)):
-                        imgui.text("{0:03d}\t{1}".format(line_number, entry.content[index]))
-
-                    if entry is not file.entries[-1]:
-                        imgui.spacing()
-                        imgui.spacing()
-                        imgui.spacing()
-                        imgui.spacing()
 
     imgui.end()
