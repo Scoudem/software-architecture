@@ -47,7 +47,7 @@ def parse_clone_file(clone_file: str) -> List[CloneClass]:
 
 
 def read_all_clones() -> List[CloneClass]:
-    clone_files = glob.glob(os.path.expanduser('~') + '/clones/*.txt')
+    clone_files = glob.glob(os.path.expanduser('~') + '/clones/*.json')
 
     matches = []
     for f in clone_files:
@@ -116,9 +116,9 @@ def render():
 
     for index, file_name in enumerate(unique_file_name):
         if selected_file is file_name:
-            label = "--> {}".format(file_name)
+            label = "--> {}".format(os.path.basename(file_name))
         else:
-            label = "{}".format(file_name)
+            label = "{}".format(os.path.basename(file_name))
 
         if imgui.button(label, width=260):
             if selected_file is file_name:
