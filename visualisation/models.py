@@ -18,10 +18,18 @@ class FileEntry:
     def __init__(self, file_name: str, entries: List[CloneEntry]):
         self.file_name = file_name
         self.entries = entries
+        self.num_cloned_lines = self.count_clone_lines()
 
     @staticmethod
     def from_json(data):
         return FileEntry(data['file'], [CloneEntry.from_json(j) for j in data['entries']])
+
+    def count_clone_lines(self):
+        lines = 0
+        for entry in self.entries:
+            lines += entry.end_line - entry.begin_line
+
+        return lines
 
 
 class CloneClass:

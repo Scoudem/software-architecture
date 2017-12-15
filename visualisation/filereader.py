@@ -12,15 +12,14 @@ class FileBuffer:
         self.read_file(file_path)
         self.min_line = 0
         self.max_line = len(self.content)
-        self.padding = 5
 
     def read_file(self, file_path: str):
         with open(file_path, 'r', encoding='utf-8') as file:
             self.content = file.readlines()
 
-    def to_imgui(self, file_entry: FileEntry):
+    def to_imgui(self, file_entry: FileEntry, padding: int):
         for entry in file_entry.entries:
-            start, end = self.range_for_entry(entry)
+            start, end = self.range_for_entry(entry, padding)
 
             for i in range(start, end):
                 text = self.content[i]
@@ -40,7 +39,7 @@ class FileBuffer:
                 imgui.separator()
                 imgui.spacing()
 
-    def range_for_entry(self, entry: CloneEntry) -> Tuple[int, int]:
-        start = max(self.min_line, entry.begin_line - self.padding)
-        end = min(self.max_line, entry.end_line + self.padding)
+    def range_for_entry(self, entry: CloneEntry, padding: int) -> Tuple[int, int]:
+        start = max(self.min_line, entry.begin_line - padding)
+        end = min(self.max_line, entry.end_line + padding)
         return start, end

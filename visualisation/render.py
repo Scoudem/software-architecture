@@ -54,6 +54,7 @@ selected_index = None
 selected_file = None
 clones_for_file = None
 file_buffers = {}
+padding = 5
 
 
 def select_clone(class_identifier):
@@ -103,11 +104,44 @@ def read_files_in_buffer():
 
 
 def render():
-    global selected_index, selected_file, clones_for_file
+    global selected_index, selected_file, clones_for_file, padding
 
     imgui.set_next_window_position(10, 10)
     imgui.set_next_window_size(280, 375)
-    imgui.begin("Clone Classes", False, imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE)
+    imgui.begin(
+        "Clone Classes", False,
+        imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE | imgui.WINDOW_NO_COLLAPSE | imgui.WINDOW_MENU_BAR
+    )
+
+    if imgui.begin_menu_bar():
+        if imgui.begin_menu('Sort'):
+            clicked, _ = imgui.menu_item('identifier (ascending)')
+            if clicked:
+                clones.sort(key=lambda x: x.class_identifier)
+
+            clicked, _ = imgui.menu_item('identifier (descending)')
+            if clicked:
+                clones.sort(key=lambda x: x.class_identifier, reverse=True)
+
+            clicked, _ = imgui.menu_item('clones (ascending)')
+            if clicked:
+                clones.sort(key=lambda x: x.num_clones)
+
+            clicked, _ = imgui.menu_item('clones (descending)')
+            if clicked:
+                clones.sort(key=lambda x: x.num_clones, reverse=True)
+
+            clicked, _ = imgui.menu_item('files (ascending)')
+            if clicked:
+                clones.sort(key=lambda x: len(x.files))
+
+            clicked, _ = imgui.menu_item('files (descending)')
+            if clicked:
+                clones.sort(key=lambda x: len(x.files), reverse=True)
+
+            imgui.end_menu()
+
+        imgui.end_menu_bar()
 
     for index, clone_class in enumerate(clones):
 
@@ -146,12 +180,49 @@ def render():
         "Details",
         False,
         imgui.WINDOW_NO_RESIZE | imgui.WINDOW_NO_MOVE |
-        imgui.WINDOW_NO_COLLAPSE | imgui.WINDOW_HORIZONTAL_SCROLLING_BAR
+        imgui.WINDOW_NO_COLLAPSE | imgui.WINDOW_HORIZONTAL_SCROLLING_BAR |
+        imgui.WINDOW_MENU_BAR
     )
 
     if selected_file is not None and clones_for_file is not None:
-        if imgui.button("Open file in editor"):
-            os.system("open \"{}\"".format(selected_file))
+        if imgui.begin_menu_bar():
+            if imgui.begin_menu('Actions'):
+                clicked, _ = imgui.menu_item('Open in editor')
+
+                if clicked:
+                    os.system("open \"{}\"".format(selected_file))
+
+                imgui.end_menu()
+
+            imgui.end_menu_bar()
+
+        file_buffer = file_buffers[selected_file]
+
+        total_cloned_lines = 0
+        for _, file in clones_for_file:
+            total_cloned_lines += file.num_cloned_lines
+
+        imgui.begin_group()
+        imgui.text("Information for this file")
+        imgui.bullet_text("This file contains {} lines".format(file_buffer.max_line))
+        imgui.bullet_text("{} lines are cloned".format(total_cloned_lines))
+        imgui.bullet_text("That is {0:.2f}% of the total file".format(total_cloned_lines / file_buffer.max_line * 100))
+        imgui.end_group()
+
+        imgui.same_line(300)
+
+        imgui.push_item_width(200)
+        imgui.begin_group()
+        changed, value = imgui.slider_int("Lines of padding", padding, 0, 100)
+        if changed:
+            padding = value
+        imgui.end_group()
+        imgui.pop_item_width()
+
+        imgui.spacing()
+        imgui.spacing()
+        imgui.spacing()
+        imgui.spacing()
 
         for class_identifier, file in clones_for_file:
             expanded, visible = imgui.collapsing_header(
@@ -162,9 +233,17 @@ def render():
                 if imgui.button("View all files for clone class {0:03d}".format(class_identifier)):
                     select_clone(class_identifier)
 
-                file_buffers[file.file_name].to_imgui(file)
+                file_buffers[file.file_name].to_imgui(file, padding)
 
     if selected_index is not None:
+        imgui.push_item_width(200)
+        imgui.begin_group()
+        changed, value = imgui.slider_int("Lines of padding", padding, 0, 100)
+        if changed:
+            padding = value
+        imgui.end_group()
+        imgui.pop_item_width()
+
         clone_class = None
 
         for clone in clones:
@@ -178,7 +257,7 @@ def render():
                 if imgui.button("View all clones for \"{}\"".format(file.file_name)):
                     select_file(file.file_name)
 
-                file_buffers[file.file_name].to_imgui(file)
+                file_buffers[file.file_name].to_imgui(file, padding)
 
 
     imgui.end()
