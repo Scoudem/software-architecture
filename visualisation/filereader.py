@@ -21,10 +21,14 @@ class FileBuffer:
         for entry in file_entry.entries:
             start, end = self.range_for_entry(entry, padding)
 
-            for i in range(start, end):
+            for i in range(start, end + 1):
+
+                if i >= self.max_line:
+                    break
+
                 text = self.content[i]
 
-                in_range = i in range(entry.begin_line, entry.end_line)
+                in_range = i in range(entry.begin_line, entry.end_line + 1)
 
                 if in_range:
                     imgui.push_style_color(imgui.COLOR_TEXT, 0.0, 1.0, 0.0)
