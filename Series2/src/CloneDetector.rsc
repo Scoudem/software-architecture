@@ -3,6 +3,7 @@ module CloneDetector
 import IO;
 import Map;
 import List;
+import ListRelation;
 import Set;
 import String;
 import lang::java::jdt::m3::Core;
@@ -30,7 +31,7 @@ void v2()
 	result = merge(groups);
 	writeCloneGroups(result);
 	writeCloneGroupsJSON(result);
-	//print(calcStatistics(result, numCl));
+	print(calcStatistics(result, numCl));
 
 	}))["f"] / 1000);
 }
@@ -113,7 +114,7 @@ void writeCloneGroups(list[tuple[str,loc,list[int]]] clones)
 		}
 		txtFile = cloneDir + (toString(ids[i]) + ".txt");
 		if(!exists(txtFile)) writeFile(txtFile, "");
-		appendToFile(txtFile, f.file + ":\n" + readFileLines1(f, ls) + "\n");
+		appendToFile(txtFile, f.file + " at line " + toString(top(ls)) + "\n" + readFileLines1(f, ls) + "\n");
 	}
 }
 
@@ -307,19 +308,18 @@ list[tuple[str,loc,list[int]]] merge(set[tuple[str,loc,list[int]]] clsp6id)
 {
 	list[tuple[str,loc,list[int]]] clsp6srt = sort(clsp6id, fileThenLineLessThan);
 	result = [];
-	map[str,str] mergedGroupIds = ();
+	lrel[str,str] mergedGroupIds = [];
 	tuple[str,loc,list[int]] prev = <"",|unknown:///|,[]>;
 	int pos = -1;
 	for(<str id, loc f, list[int] ls> <- clsp6srt)
 	{
-		if(id in mergedGroupIds)
-			id = mergedGroupIds[id];
 		cur = <"",|unknown:///|,[]>;
 		if(prev<1> == f && last(prev<2>) >= top(ls))
 		{
 			cur = <prev<0>, f, dup(prev<2> + ls)>;
 			result[pos] = cur;
-			mergedGroupIds += (id : prev<0>);
+			mergedGroupIds += <id,prev<0>>;
+			mergedGroupIds += <prev<0>,id>;
 		}
 		else
 		{
@@ -329,7 +329,21 @@ list[tuple[str,loc,list[int]]] merge(set[tuple[str,loc,list[int]]] clsp6id)
 		}
 		prev = cur;
 	}
-	return result;
+	map[str,str] replaceIds = ();
+	mergedGroupIds = mergedGroupIds*;
+	for(m <- mergedGroupIds)
+	{
+		allIds = mergedGroupIds[{m<0>}];
+		newId = min(allIds);
+		for(ia <- allIds)
+			replaceIds[ia] = newId;
+	}
+	return for(<str id, loc f, list[int] ls> <- result)
+		{
+			if(id in replaceIds)
+				id = replaceIds[id];
+			append(<id, f, ls>);
+		}
 }
 
 str badHash(str cl) = cl;
