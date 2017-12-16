@@ -14,13 +14,17 @@ import util::Resources;
 import util::ValueUI;
 import ValueIO;
 
-void v2()
+loc outputDir = |home:///CloneDetector|;
+loc testProject = |project://CloneDetectorTest|;
+loc testDir = outputDir + "tests";
+
+void demo()
 {
 	//prj = |project://HelloWorld|;
 	prj = |project://smallsql0.21_src|;
 	//prj = |project://hsqldb-2.3.1|;
 	
-	println(benchmark(("f" : void() {
+	println("Time: " + toString(benchmark(("f" : void() {
 	
 	cl = getCodeLines(prj, srcFiles(prj));
 	numCl = numCodeLines(cl);
@@ -33,35 +37,34 @@ void v2()
 	writeCloneGroupsJSON(result);
 	print(calcStatistics(result, numCl));
 
-	}))["f"] / 1000);
+	}))["f"] / 1000));
 }
 
 void generateTestFiles()
 {
-	prj = |project://CloneDetectorTest|;
-	cl = getCodeLines(prj, srcFiles(prj));
-	output = <prj, cl>;
-	writeTextValueFile(|home:///clones/tests/CodeLines.txt|, output);
+	cl = getCodeLines(testProject, srcFiles(testProject));
+	output = <testProject, cl>;
+	writeTextValueFile(testDir + "CodeLines.txt", output);
 	
 	clsp6 = groupPerSixLines(cl);
 	output = <cl, clsp6>;
-	writeTextValueFile(|home:///clones/tests/GroupsPerSix.txt|, output);
+	writeTextValueFile(testDir + "GroupsPerSix.txt", output);
 	
 	clsp6id = addGroupIds(clsp6);
 	groups = cloneGroups(clsp6id);
 	output = <clsp6id, groups>;
-	writeTextValueFile(|home:///clones/tests/GroupsPerClass.txt|, output);
+	writeTextValueFile(testDir + "GroupsPerClass.txt", output);
 	
 	result = merge(groups);
 	numCl = numCodeLines(cl);
 	stats = calcStatistics(result, numCl);
 	output = <result, numCl, stats>;
-	writeTextValueFile(|home:///clones/tests/Statistics.txt|, output);
+	writeTextValueFile(testDir + "Statistics.txt", output);
 }
 
 test bool statistics()
 {
-	<result, numCl, stats> = readTextValueFile(#tuple[list[tuple[str,loc,list[int]]],int,str], |home:///clones/tests/Statistics.txt|);
+	<result, numCl, stats> = readTextValueFile(#tuple[list[tuple[str,loc,list[int]]],int,str], testDir + "Statistics.txt");
     return stats == calcStatistics(result, numCl);
 }
 
@@ -101,7 +104,10 @@ str calcStatistics(list[tuple[str,loc,list[int]]] clones, int nCodeLines)
 
 void writeCloneGroups(list[tuple[str,loc,list[int]]] clones)
 {
-	cloneDir = toLocation("home:///clones");
+	cloneDir = outputDir + "clones";
+	if(!exists(cloneDir)) mkDirectory(cloneDir);
+	for(f <- [cloneDir + ent | ent <- listEntries(cloneDir), endsWith(ent, ".txt")])
+		remove(f);
 	map[int, str] result = ();
 	int count = 0;
 	map[str,int] ids = ();
@@ -122,7 +128,7 @@ str escapeJSON(str s) = escape(s, ("\"":"\\\"","\\":"\\\\","\t":"    "));
 
 void writeCloneGroupsJSON(list[tuple[str,loc,list[int]]] clones)
 {
-	jsonFile = toLocation("home:///clones/visualization.json");
+	jsonFile = outputDir + "visualization.json";
 	writeFile(jsonFile, "[\n");
 	map[int,map[loc,list[tuple[int,int]]]] result = ();
 	int count = 0;

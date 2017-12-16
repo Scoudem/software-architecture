@@ -16,7 +16,7 @@ def parse_clone_file(clone_file: str) -> List[CloneClass]:
 
 
 def read_all_clones() -> List[CloneClass]:
-    clone_files = glob.glob(os.path.expanduser('~') + '/clones/*.json')
+    clone_files = glob.glob(os.path.expanduser('~') + '/CloneDetector/*.json')
 
     matches = []
     for f in clone_files:
