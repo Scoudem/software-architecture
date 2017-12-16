@@ -42,7 +42,7 @@ def get_clones_for_file(file_name: str):
 
     for clone in clones:
         for file in clone.files:
-            if file.file_name is file_name:
+            if file.file_name == file_name:
                 matches.append((clone.class_identifier, file))
 
     return sorted(matches, key=lambda x: x[0])
@@ -60,7 +60,7 @@ padding = 5
 def select_clone(class_identifier):
     global selected_index, selected_file, clones_for_file, file_buffers
 
-    if selected_index is class_identifier:
+    if selected_index == class_identifier:
         selected_index = None
     else:
         selected_index = class_identifier
@@ -73,7 +73,7 @@ def select_clone(class_identifier):
 def select_file(file_name):
     global selected_index, selected_file, clones_for_file
 
-    if selected_file is file_name:
+    if selected_file == file_name:
         selected_file = None
         clones_for_file = None
     else:
@@ -93,7 +93,7 @@ def read_files_in_buffer():
         clone_class = None
 
         for clone in clones:
-            if clone.class_identifier is selected_index:
+            if clone.class_identifier == selected_index:
                 clone_class = clone
 
         for file in clone_class.files:

@@ -41,7 +41,7 @@ def main():
 
 def impl_pysdl2_init():
     width, height = 1200, 780
-    window_name = "Clone visualisation"
+    window_name = "Cloning considered harmful"
 
     if SDL_Init(SDL_INIT_EVERYTHING) < 0:
         print("Error: SDL could not initialize! SDL Error: " + str(SDL_GetError()))
